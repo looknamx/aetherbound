@@ -1,0 +1,51 @@
+{
+  "name": "aetherbound",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "concurrently -k -n server,client \"npm:dev:server\" \"npm:dev:client\"",
+    "dev:server": "tsx watch server/index.ts",
+    "dev:client": "vite --host 0.0.0.0",
+    "build": "tsc --noEmit && vite build",
+    "start": "tsx server/index.ts",
+    "test": "vitest run",
+    "test:e2e": "playwright test",
+    "db:generate": "prisma generate",
+    "db:migrate": "prisma migrate deploy",
+    "db:seed": "tsx prisma/seed.ts",
+    "docs:content": "tsx scripts/generate-content-docs.ts",
+    "format": "prettier --write client shared server tests scripts docs *.md *.ts"
+  },
+  "dependencies": {
+    "@fontsource/cormorant-garamond": "5.3.0",
+    "@fontsource/dm-sans": "5.3.0",
+    "@prisma/client": "6.19.0",
+    "express": "4.22.3",
+    "phaser": "3.90.0",
+    "react": "19.1.0",
+    "react-dom": "19.1.0",
+    "socket.io": "4.8.1",
+    "socket.io-client": "4.8.1",
+    "zod": "3.24.2"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.55.1",
+    "@types/express": "4.17.21",
+    "@types/node": "22.15.3",
+    "@types/react": "19.1.2",
+    "@types/react-dom": "19.1.2",
+    "@vitejs/plugin-react": "4.4.1",
+    "concurrently": "9.1.2",
+    "prettier": "3.6.2",
+    "prisma": "6.19.0",
+    "tsx": "4.19.4",
+    "typescript": "5.8.3",
+    "vite": "6.4.3",
+    "vitest": "4.1.11"
+  },
+  "overrides": {
+    "deepmerge-ts": "8.0.2",
+    "effect": "3.22.2"
+  }
+}

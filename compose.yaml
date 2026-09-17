@@ -1,0 +1,17 @@
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: aether
+      POSTGRES_PASSWORD: aether_local
+      POSTGRES_DB: aetherbound
+    ports:
+      - "127.0.0.1:5432:5432"
+    volumes:
+      - aether-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U aether -d aetherbound"]
+      interval: 5s
+      retries: 10
+volumes:
+  aether-data:
