@@ -1,0 +1,276 @@
+import { useEffect, useRef, useState } from "react";
+import Phaser from "phaser";
+import { BOARD, RULES, UNIT_MAP } from "../../shared/content";
+import type { Battle, CombatFrame, Unit } from "../../shared/types";
+import { tone } from "../audio";
+import { UnitCard } from "./UnitCard";
+import { setCardDragImage } from "./CardDragPreview";
+export const CELL = 76,
+  OFFSET = 32;
+interface Props {
+  units: Unit[];
+  battle?: Battle;
+  deadline: number;
+  serverOffset: number;
+  selected?: string;
+  onSlot: (slot: number) => void;
+  onSelect: (id: string) => void;
+  onDrop: (slot: number, id?: string, item?: number) => void;
+  disabled: boolean;
+  reduced: boolean;
+  speed: number;
+  sound: boolean;
+  playerId?: string;
+  blockedSlots?: number[];
+}
+export function playbackFrame(
+  battle: Battle,
+  now: number,
+  deadline: number,
+  speed: number,
+) {
+  const elapsed =
+    battle.startedAt !== undefined
+      ? (now - battle.startedAt) * (battle.playbackRate ?? 1)
+      : battle.duration - (deadline - now);
+  return battle.frames[
+    Math.min(
+      battle.frames.length - 1,
+      Math.max(0, Math.floor((elapsed / RULES.tickMs) * speed)),
+    )
+  ];
+}
+export function CardBoard(props: Props) {
+  const mount = useRef<HTMLDivElement>(null),
+    latest = useRef(props),
+    liveFrame = useRef<CombatFrame | undefined>(undefined);
+  latest.current = props;
+  const [frame, setFrame] = useState<CombatFrame>(),
+    [inspected, setInspected] = useState<string>();
+  useEffect(() => {
+    if (!props.battle) {
+      setFrame(undefined);
+      liveFrame.current = undefined;
+      return;
+    }
+    const update = () => {
+      const p = latest.current;
+      if (!p.battle) return;
+      const current = playbackFrame(
+        p.battle,
+        Date.now() + p.serverOffset,
+        p.deadline,
+        p.speed,
+      );
+      liveFrame.current = current;
+      setFrame((old) => (old === current ? old : current));
+    };
+    update();
+    const timer = setInterval(update, 50);
+    return () => clearInterval(timer);
+  }, [props.battle]);
+  // Phaser preserves terrain and combat effects; cards share an accessible DOM component.
+  useEffect(() => {
+    let graphics: Phaser.GameObjects.Graphics,
+      lastTick = -1,
+      lastBattle = "";
+    class Arena extends Phaser.Scene {
+      create() {
+        graphics = this.add.graphics();
+      }
+      update() {
+        if (!graphics) return;
+        const p = latest.current,
+          g = graphics;
+        g.clear();
+        g.fillStyle(0x101f26);
+        g.fillRoundedRect(8, 8, 504, 504, 14);
+        g.lineStyle(1, 0x799b8d, 0.25);
+        g.strokeRoundedRect(9, 9, 502, 502, 14);
+        for (let y = 0; y < BOARD.size; y++)
+          for (let x = 0; x < BOARD.size; x++) {
+            const px = OFFSET + x * CELL,
+              py = OFFSET + y * CELL,
+              locked = p.blockedSlots?.includes(y * BOARD.size + x);
+            g.fillStyle(locked ? 0x111d22 : (x + y) % 2 ? 0x1d343a : 0x243d41);
+            g.fillRoundedRect(px + 2, py + 2, CELL - 4, CELL - 4, 4);
+            g.lineStyle(1, 0x7ca999, 0.12);
+            g.strokeRoundedRect(px + 2, py + 2, CELL - 4, CELL - 4, 4);
+          }
+        g.lineStyle(1, 0xe8c684, 0.4);
+        g.lineBetween(OFFSET, 260, 488, 260);
+        const current = liveFrame.current;
+        if (!p.battle || !current) return;
+        if (lastBattle !== p.battle.id) {
+          lastBattle = p.battle.id;
+          lastTick = -1;
+        }
+        const newTick = lastTick !== current.tick;
+        lastTick = current.tick;
+        for (const event of current.events) {
+          const source = current.units.find((u) => u.id === event.source),
+            target = current.units.find((u) => u.id === event.target);
+          if (!source || !target || !["attack", "cast"].includes(event.type))
+            continue;
+          if (newTick) tone(p.sound, event.type);
+          if (p.reduced) continue;
+          g.lineStyle(
+            event.type === "cast" ? 5 : 2,
+            event.type === "cast" ? 0xc4a4fa : 0xecd99d,
+            0.9,
+          );
+          g.lineBetween(
+            OFFSET + (source.x + 0.5) * CELL,
+            OFFSET + (source.y + 0.5) * CELL,
+            OFFSET + (target.x + 0.5) * CELL,
+            OFFSET + (target.y + 0.5) * CELL,
+          );
+        }
+      }
+    }
+    const game = new Phaser.Game({
+      type: Phaser.CANVAS,
+      parent: mount.current!,
+      width: 520,
+      height: 520,
+      transparent: true,
+      scene: Arena,
+      banner: false,
+      audio: { noAudio: true },
+      fps: { target: 30 },
+      render: { antialias: true },
+    });
+    return () => game.destroy(true);
+  }, []);
+  const currentFighter = frame?.units.find((u) => u.id === inspected),
+    ownSide = props.battle?.a === props.playerId ? 0 : 1;
+  return (
+    <>
+      <div className="arena" ref={mount}>
+        <div
+          className="board-input"
+          role="grid"
+          aria-label="6 by 6 battlefield"
+        >
+          {Array.from({ length: BOARD.cells }, (_, slot) => {
+            const unit = props.units.find((u) => u.slot === slot),
+              blocked = props.blockedSlots?.includes(slot);
+            return (
+              <button
+                key={slot}
+                role="gridcell"
+                className={`tile ${unit && unit.id === props.selected ? "selected" : ""} ${props.selected && !props.disabled ? "available" : ""}`}
+                data-slot={slot}
+                data-unit={!props.battle ? unit?.id : undefined}
+                aria-label={`Tile ${slot + 1}${unit ? `: ${UNIT_MAP[unit.defId].name}` : ""}${blocked ? " (locked)" : ""}`}
+                disabled={
+                  !!props.battle || blocked || (props.disabled && !unit)
+                }
+                onClick={() => {
+                  if (
+                    unit &&
+                    (props.disabled ||
+                      !props.selected ||
+                      props.selected === unit.id)
+                  )
+                    props.onSelect(unit.id);
+                  else props.onSlot(slot);
+                }}
+                draggable={!!unit && !props.disabled}
+                onDragStart={(e) => {
+                  if (unit) {
+                    props.onSelect(unit.id);
+                    e.dataTransfer.setData("unit", unit.id);
+                    setCardDragImage(e, unit.id);
+                  }
+                }}
+                onDragOver={(e) => e.preventDefault()}
+                onDrop={(e) => {
+                  e.preventDefault();
+                  if (props.disabled) return;
+                  const item = e.dataTransfer.getData("item");
+                  props.onDrop(
+                    slot,
+                    e.dataTransfer.getData("unit") || undefined,
+                    item ? Number(item) : undefined,
+                  );
+                }}
+              >
+                {!props.battle && unit && (
+                  <UnitCard
+                    unit={unit}
+                    variant="board"
+                    selected={unit.id === props.selected}
+                  />
+                )}{" "}
+                {blocked && !unit && <span aria-hidden="true">×</span>}
+              </button>
+            );
+          })}
+        </div>
+        {props.battle && frame && (
+          <div className="combat-layer" aria-label="Battle cards">
+            {frame.units.map((f) => {
+              const hurt = frame.events.some(
+                  (e) => e.type === "damage" && e.target === f.id,
+                ),
+                cast = frame.events.some(
+                  (e) => e.type === "cast" && e.source === f.id,
+                );
+              return (
+                <button
+                  key={f.id}
+                  className={`combat-card ${hurt ? "is-hit" : ""} ${cast ? "is-casting" : ""}`}
+                  style={{
+                    left: `${(f.x / BOARD.size) * 100}%`,
+                    top: `${(f.y / BOARD.size) * 100}%`,
+                  }}
+                  aria-label={`Inspect ${f.side === ownSide ? "ally" : "enemy"} ${UNIT_MAP[f.defId].name}`}
+                  onClick={() => setInspected(f.id)}
+                >
+                  <UnitCard
+                    unit={{
+                      defId: f.defId,
+                      star: f.star,
+                      items: f.items ?? [],
+                    }}
+                    fighter={f}
+                    variant="board"
+                    side={f.side === ownSide ? "ally" : "enemy"}
+                  />
+                </button>
+              );
+            })}
+          </div>
+        )}
+      </div>
+      {currentFighter && (
+        <div className="modal-backdrop">
+          <section
+            className="modal card-inspection"
+            role="dialog"
+            aria-label="Battle card details"
+          >
+            <button
+              className="close"
+              aria-label="Close card details"
+              onClick={() => setInspected(undefined)}
+            >
+              ×
+            </button>
+            <UnitCard
+              unit={{
+                defId: currentFighter.defId,
+                star: currentFighter.star,
+                items: currentFighter.items ?? [],
+              }}
+              fighter={currentFighter}
+              variant="detail"
+              side={currentFighter.side === ownSide ? "ally" : "enemy"}
+            />
+          </section>
+        </div>
+      )}
+    </>
+  );
+}

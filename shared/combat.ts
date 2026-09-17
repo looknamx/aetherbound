@@ -1,5 +1,5 @@
 import { ITEM_MAP, RULES, STAT_MULT, UNIT_MAP } from "./content";
-import { synergies } from "./economy";
+import { battleStats } from "./stats";
 import { RNG } from "./random";
 import type {
   Battle,
@@ -82,16 +82,13 @@ export function nextStep(
   return null;
 }
 function actors(p: Player, side: 0 | 1): Actor[] {
-  const traits = Object.fromEntries(
-    synergies(p.units).map((t) => [t.id, t.tier]),
-  );
   const claimed = new Set<string>();
   return p.units
     .filter((u) => u.slot < 36)
     .sort((a, b) => a.slot - b.slot)
     .map((u) => {
       const d = UNIT_MAP[u.defId],
-        m = STAT_MULT[u.star];
+        stats = battleStats(u, p.units);
       let x = u.slot % 6,
         y = 3 + Math.floor(Math.floor(u.slot / 6) / 2);
       if (side === 1) {
@@ -108,24 +105,15 @@ function actors(p: Player, side: 0 | 1): Actor[] {
       }
       claimed.add(`${x},${y}`);
       const a: Actor = {
+        ...stats,
         id: `${side}:${u.id}`,
         defId: u.defId,
         star: u.star,
         side,
         x,
         y,
-        hp: d.hp * m,
-        maxHp: d.hp * m,
-        mana: d.mana + traits.Astral * 15,
-        maxMana: d.maxMana,
-        shield: traits.Warden * 80,
+        hp: stats.maxHp,
         status: [],
-        attack: d.attack * m + traits.Emberkin * 10,
-        speed: d.speed * (1 + traits.Striker * 0.15),
-        range: d.range,
-        armor: d.armor + traits.Ironveil * 12,
-        resist: d.resist + traits.Tideborn * 10,
-        moveSpeed: d.moveSpeed,
         cooldown: 0,
         moveCooldown: 0,
         spellCooldown: 0,
@@ -135,22 +123,9 @@ function actors(p: Player, side: 0 | 1): Actor[] {
         items: [...u.items],
         attacks: 0,
         lifeline: false,
-        spellPower: 1 + traits.Arcanist * 0.2,
-        regen: traits.Weaver * 8,
-        crit: 0.1 + traits.Ranger * 0.1,
         summons: 0,
         targeting: d.targeting,
       };
-      a.maxHp += traits.Verdant * 100;
-      for (const id of u.items) {
-        const it = ITEM_MAP[id];
-        if (it.stat === "hp") a.maxHp += it.amount;
-        else if (it.stat === "speed") a.speed *= 1 + it.amount;
-        else if (it.stat) a[it.stat] += it.amount;
-        if (it.passive === "regen") a.regen += it.amount;
-        if (it.passive === "crit") a.crit += it.amount;
-      }
-      a.hp = a.maxHp;
       return a;
     });
 }
@@ -220,6 +195,13 @@ export function simulate(
           ...(u.silence > 0 ? ["Silence"] : []),
         ],
         summon: u.summon,
+        attack: u.attack,
+        armor: u.armor,
+        resist: u.resist,
+        speed: u.speed,
+        range: u.range,
+        maxMana: u.maxMana,
+        items: [...u.items],
       })),
       events: [...events],
     });

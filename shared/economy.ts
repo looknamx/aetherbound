@@ -73,6 +73,7 @@ export function sell(p: Player, id: string) {
   p.units = p.units.filter((x) => x.id !== id);
 }
 export function move(p: Player, id: string, slot: number) {
+  if (p.blockedSlots?.includes(slot)) throw Error("This field tile is locked.");
   if (!Number.isInteger(slot) || slot < 0 || slot > 43)
     throw Error("Invalid position.");
   const u = p.units.find((u) => u.id === id);

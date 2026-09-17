@@ -101,6 +101,7 @@ npm start
 ## เอกสารและข้อจำกัด
 
 - [กติกาและสมมติฐาน](docs/RULES.md)
+- [Auto-deploy, ระบบการ์ด และสูตรคำนวณ](docs/AUTO_DEPLOY_CARDS.md)
 - [Architecture และ event protocol](docs/ARCHITECTURE.md)
 - [รายชื่อตัวละคร สกิล traits และไอเทม](docs/CONTENT.md)
 - [ผลการทดสอบจริง](TEST_REPORT.md)

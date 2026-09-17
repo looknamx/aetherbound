@@ -1,7 +1,9 @@
 import React, { useEffect, useRef, useState } from "react";
 import { createRoot } from "react-dom/client";
 import { Board } from "./Board";
-import { Portrait } from "./Portrait";
+import { UnitCard } from "./cards/UnitCard";
+import { CardDragPreview, setCardDragImage } from "./cards/CardDragPreview";
+import { useAutoDeployFeedback } from "./cards/useAutoDeployFeedback";
 import { socket, request, sendAction } from "./network";
 import { tone } from "./audio";
 import {
@@ -17,8 +19,9 @@ import {
   XP_TO_LEVEL,
 } from "../shared/content";
 import { synergies } from "../shared/economy";
-import type { Action, Snapshot } from "../shared/types";
+import type { Action, Snapshot, Unit } from "../shared/types";
 import "./style.css";
+import "./cards/cards.css";
 import "@fontsource/dm-sans/400.css";
 import "@fontsource/dm-sans/500.css";
 import "@fontsource/dm-sans/600.css";
@@ -55,6 +58,14 @@ function App() {
     [now, setNow] = useState(Date.now()),
     [pending, setPending] = useState(false),
     [devValue, setDevValue] = useState("cinder");
+  const [cardDetail, setCardDetail] =
+    useState<Pick<Unit, "defId" | "star" | "items">>();
+  const [dragView, setDragView] = useState<{
+    id: string;
+    x: number;
+    y: number;
+  }>();
+  const flights = useAutoDeployFeedback(state, reduced);
   useEffect(() => {
     const onState = (s: Snapshot) => {
       latestState.current = s;
@@ -211,6 +222,7 @@ function App() {
         };
       }}
       onPointerUpCapture={(e) => {
+        setDragView(undefined);
         const drag = touchDrag.current;
         touchDrag.current = undefined;
         if (!drag || Math.hypot(e.clientX - drag.x, e.clientY - drag.y) < 10)
@@ -223,6 +235,15 @@ function App() {
       }}
       onPointerCancel={() => {
         touchDrag.current = undefined;
+        setDragView(undefined);
+      }}
+      onPointerMoveCapture={(e) => {
+        const drag = touchDrag.current;
+        if (
+          drag?.unit &&
+          Math.hypot(e.clientX - drag.x, e.clientY - drag.y) > 10
+        )
+          setDragView({ id: drag.unit, x: e.clientX, y: e.clientY });
       }}
       onClickCapture={(e) => {
         if (suppressClick.current) {
@@ -232,6 +253,35 @@ function App() {
         }
       }}
     >
+      {p && <CardDragPreview units={p.units} />}
+      {dragView && p?.units.find((u) => u.id === dragView.id) && (
+        <div
+          className="touch-card-preview"
+          style={{ left: dragView.x + 12, top: dragView.y + 12 }}
+        >
+          <UnitCard
+            unit={p.units.find((u) => u.id === dragView.id)!}
+            variant="drag"
+          />
+        </div>
+      )}
+      {flights.map((f) => (
+        <div
+          key={f.id}
+          className="auto-flight"
+          aria-hidden="true"
+          style={
+            {
+              left: f.x,
+              top: f.y,
+              "--dx": `${f.dx}px`,
+              "--dy": `${f.dy}px`,
+            } as React.CSSProperties
+          }
+        >
+          <UnitCard unit={f.unit} variant="drag" />
+        </div>
+      ))}
       <header>
         {wordmark}
         <div className="header-right">
@@ -553,7 +603,24 @@ function App() {
                 reduced={reduced}
                 speed={speed}
                 sound={sound}
+                playerId={p.id}
+                blockedSlots={p.blockedSlots}
               />
+              {r.deployments
+                ?.filter(
+                  (d) =>
+                    d.playerId === p.id &&
+                    d.round === r.round &&
+                    d.moves.length > 0,
+                )
+                .map((d) => (
+                  <div key={d.id} className="deploy-notice" role="status">
+                    จัดทีมอัตโนมัติ: ลงสนามเพิ่ม {d.moves.length} ใบ
+                    <span>
+                      {d.moves.map((m) => UNIT_MAP[m.defId].name).join(" · ")}
+                    </span>
+                  </div>
+                ))}
               <div className="board-bottom">
                 <span>
                   {r.phase === "Preparing"
@@ -582,11 +649,12 @@ function App() {
                       data-unit={u?.id}
                       data-testid={`bench-${i}`}
                       key={i}
-                      disabled={disabled}
+                      disabled={disabled && !u}
                       draggable={!!u && !disabled}
                       onDragStart={(e) => {
                         if (u) {
                           e.dataTransfer.setData("unit", u.id);
+                          setCardDragImage(e, u.id);
                           setSelected(u.id);
                         }
                       }}
@@ -608,10 +676,13 @@ function App() {
                       }
                     >
                       {u ? (
-                        <>
-                          <Portrait id={u.defId} small />
-                          <span className="stars">{"★".repeat(u.star)}</span>
-                        </>
+                        <UnitCard
+                          unit={u}
+                          variant="bench"
+                          selected={selected === u.id}
+                          recommended={state.autoDeployPreview?.includes(u.id)}
+                          disabled={disabled}
+                        />
                       ) : (
                         <span className="slot-number">{i + 1}</span>
                       )}
@@ -619,6 +690,28 @@ function App() {
                   );
                 })}
               </div>
+              <p className="bench-help">
+                ↗ AUTO marks the server’s next picks. Empty field slots fill
+                when preparation ends.
+              </p>
+              {p.units.some((u) => u.slot >= 44) && (
+                <div className="recovery-reserves">
+                  Recovery reserves — move a card to a free tile or sell it.
+                  <div>
+                    {p.units
+                      .filter((u) => u.slot >= 44)
+                      .map((u) => (
+                        <button
+                          key={u.id}
+                          onClick={() => select(u.id)}
+                          aria-label={`Recovery ${UNIT_MAP[u.defId].name}`}
+                        >
+                          <UnitCard unit={u} variant="bench" />
+                        </button>
+                      ))}
+                  </div>
+                </div>
+              )}
             </section>
             <aside className="right-panel">
               <div className="economy">
@@ -693,29 +786,7 @@ function App() {
               <div className="unit-info">
                 {def && unit ? (
                   <>
-                    <div className="unit-info-head">
-                      <Portrait id={def.id} />
-                      <span className="stars">{"★".repeat(unit.star)}</span>
-                    </div>
-                    <span className="eyebrow">
-                      {RARITIES[def.cost - 1]} · {def.origin}
-                    </span>
-                    <h3>{def.name}</h3>
-                    <p>{def.class}</p>
-                    <div className="stats">
-                      <span>
-                        ♥ {Math.round(def.hp * STAT_MULT[unit.star])}
-                      </span>
-                      <span>
-                        ⚔ {Math.round(def.attack * STAT_MULT[unit.star])}
-                      </span>
-                      <span>◈ {def.armor}</span>
-                    </div>
-                    <strong className="skill-title">{def.skill.name}</strong>
-                    <p className="hint">
-                      {def.skill.description} Power:{" "}
-                      {Math.round(def.skill.power * STAT_MULT[unit.star])}.
-                    </p>
+                    <UnitCard unit={unit} variant="detail" />
                     <div className="equipped">
                       {unit.items.map((id, i) => (
                         <button
@@ -799,35 +870,38 @@ function App() {
             <div className="shop-cards">
               {p.shop.map((id, i) =>
                 id ? (
-                  <button
-                    key={i}
-                    data-testid={`shop-${i}`}
-                    className="recruit-card"
-                    style={
-                      {
-                        "--rarity": COLORS[UNIT_MAP[id].cost - 1],
-                      } as React.CSSProperties
-                    }
-                    disabled={disabled || p.gold < UNIT_MAP[id].cost}
-                    onClick={() => void act({ type: "buy", index: i })}
-                    title={`${UNIT_MAP[id].skill.name}: ${UNIT_MAP[id].skill.description}`}
-                  >
-                    <div className="recruit-art">
-                      <Portrait id={id} />
-                      <span className="cost">
-                        {UNIT_MAP[id].cost} <small>◉</small>
-                      </span>
-                      <span className="rarity">
-                        {RARITIES[UNIT_MAP[id].cost - 1]}
-                      </span>
-                    </div>
-                    <div className="recruit-copy">
-                      <strong>{UNIT_MAP[id].name}</strong>
-                      <span>
-                        {UNIT_MAP[id].origin} <i>·</i> {UNIT_MAP[id].class}
-                      </span>
-                    </div>
-                  </button>
+                  <div key={i} className="shop-slot">
+                    <button
+                      key={i}
+                      data-testid={`shop-${i}`}
+                      className="recruit-card"
+                      style={
+                        {
+                          "--rarity": COLORS[UNIT_MAP[id].cost - 1],
+                        } as React.CSSProperties
+                      }
+                      disabled={disabled || p.gold < UNIT_MAP[id].cost}
+                      onClick={() => void act({ type: "buy", index: i })}
+                      title={`${UNIT_MAP[id].skill.name}: ${UNIT_MAP[id].skill.description}`}
+                      aria-label={`Buy ${UNIT_MAP[id].name}`}
+                    >
+                      <UnitCard
+                        unit={{ defId: id, star: 1, items: [] }}
+                        variant="shop"
+                        affordable={p.gold >= UNIT_MAP[id].cost}
+                        disabled={disabled}
+                      />
+                    </button>
+                    <button
+                      className="inspect-shop"
+                      onClick={() =>
+                        setCardDetail({ defId: id, star: 1, items: [] })
+                      }
+                      aria-label={`Inspect ${UNIT_MAP[id].name}`}
+                    >
+                      Details & ability ↗
+                    </button>
+                  </div>
                 ) : (
                   <div key={i} className="sold-card">
                     ✧<span>RECRUITED</span>
@@ -978,25 +1052,19 @@ function App() {
             <h3>The recruits</h3>
             <div className="codex-units">
               {UNITS.map((d) => (
-                <article key={d.id}>
-                  <Portrait id={d.id} small />
-                  <div>
-                    <strong>
-                      {d.name} · {d.cost} ◉
-                    </strong>
-                    <small>
-                      {d.origin} / {d.class} · {RARITIES[d.cost - 1]}
-                    </small>
-                    <p>
-                      {d.skill.name} — {d.skill.description}
-                    </p>
-                    <small>
-                      HP {d.hp} · ATK {d.attack} · Speed {d.speed} · Range{" "}
-                      {d.range} · Armor {d.armor} · MR {d.resist} · Mana{" "}
-                      {d.mana}/{d.maxMana} · Move {d.moveSpeed} · {d.targeting}
-                    </small>
-                    <small>2★ HP/ATK ×1.8 · 3★ ×3.24</small>
-                  </div>
+                <article key={d.id} className="card-catalog-entry">
+                  <button
+                    className="catalog-card"
+                    onClick={() =>
+                      setCardDetail({ defId: d.id, star: 1, items: [] })
+                    }
+                    aria-label={`Inspect ${d.name}`}
+                  >
+                    <UnitCard
+                      unit={{ defId: d.id, star: 1, items: [] }}
+                      variant="preview"
+                    />
+                  </button>
                 </article>
               ))}
             </div>
@@ -1019,6 +1087,24 @@ function App() {
                 </p>
               ))}
             </div>
+          </section>
+        </div>
+      )}
+      {cardDetail && (
+        <div className="modal-backdrop card-detail-backdrop">
+          <section
+            className="modal card-inspection"
+            role="dialog"
+            aria-label="Card details"
+          >
+            <button
+              className="close"
+              aria-label="Close card details"
+              onClick={() => setCardDetail(undefined)}
+            >
+              ×
+            </button>
+            <UnitCard unit={cardDetail} variant="detail" />
           </section>
         </div>
       )}

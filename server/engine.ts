@@ -12,6 +12,7 @@ import {
 } from "../shared/economy";
 import { simulate } from "../shared/combat";
 import { RNG } from "../shared/random";
+import { autoDeploy } from "../shared/autoDeploy";
 import type { Action, Player, Room } from "../shared/types";
 export interface Session {
   token: string;
@@ -134,7 +135,11 @@ export class GameEngine {
         throw Error("Developer tools are disabled.");
       this.debug(r, p, action);
     } else {
-      if (r.phase !== "Preparing" || p.hp <= 0)
+      if (
+        r.phase !== "Preparing" ||
+        p.hp <= 0 ||
+        (r.deadline > 0 && Date.now() >= r.deadline)
+      )
         throw Error("You can only change your team during preparation.");
       const rng = this.rng(r);
       switch (action.type) {
@@ -186,8 +191,17 @@ export class GameEngine {
     r.deadline = Date.now() + RULES.prepMs / (this.speeds.get(r.key) ?? 1);
   }
   battle(r: Room) {
+    if (r.phase !== "Preparing") return;
+    // Close preparation first. All work below is synchronous: no action can interleave.
     r.phase = "Battling";
     const active = r.players.filter((p) => p.hp > 0);
+    r.deployments = active.map((p) => ({
+      id: `${r.key}:${r.round}:${p.id}`,
+      playerId: p.id,
+      round: r.round,
+      at: Date.now(),
+      ...autoDeploy(p),
+    }));
     const rotation = r.round % active.length;
     const ordered = [...active.slice(rotation), ...active.slice(0, rotation)];
     r.battles = [];
@@ -200,6 +214,12 @@ export class GameEngine {
       );
     }
     r.seed = rng.state >>> 0;
+    const startedAt = Date.now(),
+      playbackRate = this.speeds.get(r.key) ?? 1;
+    for (const battle of r.battles) {
+      battle.startedAt = startedAt;
+      battle.playbackRate = playbackRate;
+    }
     r.deadline =
       Date.now() +
       Math.max(...r.battles.map((b) => b.duration)) /

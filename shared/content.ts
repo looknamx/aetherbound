@@ -14,7 +14,90 @@ export const CLASSES = [
   "Weaver",
 ] as const;
 export const RARITIES = ["Common", "Uncommon", "Rare", "Epic", "Legendary"];
-export const COLORS = ["#86bdaf", "#7abbea", "#b4a1ef", "#e3a66b", "#f2d17d"];
+export const COLORS = ["#d3dbdf", "#8dddac", "#84bdf5", "#c5a1f4", "#f2d17d"];
+export const ROLES = [
+  "Tank",
+  "Fighter",
+  "Assassin",
+  "Ranger",
+  "Mage",
+  "Support",
+  "Summoner",
+] as const;
+export type UnitRole = (typeof ROLES)[number];
+export const BOARD = { size: 6, cells: 36, benchStart: 36, benchEnd: 44 };
+export const ROLE_CONFIG: Record<
+  UnitRole,
+  {
+    icon: string;
+    color: string;
+    short: string;
+    rows: number[];
+    columns: number[];
+  }
+> = {
+  Tank: {
+    icon: "⬡",
+    color: "#a9cfe0",
+    short: "Tank",
+    rows: [0, 1, 2, 3, 4, 5],
+    columns: [2, 3, 1, 4, 0, 5],
+  },
+  Fighter: {
+    icon: "⚔",
+    color: "#edb991",
+    short: "Fight",
+    rows: [1, 0, 2, 3, 4, 5],
+    columns: [2, 3, 1, 4, 0, 5],
+  },
+  Assassin: {
+    icon: "➶",
+    color: "#d1b2ef",
+    short: "Assn",
+    rows: [1, 2, 0, 3, 4, 5],
+    columns: [0, 5, 1, 4, 2, 3],
+  },
+  Ranger: {
+    icon: "⌁",
+    color: "#a9dbb0",
+    short: "Range",
+    rows: [5, 4, 3, 2, 1, 0],
+    columns: [2, 3, 1, 4, 0, 5],
+  },
+  Mage: {
+    icon: "✦",
+    color: "#b7b8f3",
+    short: "Mage",
+    rows: [5, 4, 3, 2, 1, 0],
+    columns: [2, 3, 1, 4, 0, 5],
+  },
+  Support: {
+    icon: "✧",
+    color: "#9fdfd2",
+    short: "Supp",
+    rows: [5, 4, 3, 2, 1, 0],
+    columns: [2, 3, 1, 4, 0, 5],
+  },
+  Summoner: {
+    icon: "❖",
+    color: "#d4cf9b",
+    short: "Summ",
+    rows: [3, 4, 5, 2, 1, 0],
+    columns: [2, 3, 1, 4, 0, 5],
+  },
+};
+const CLASS_ROLES: Record<(typeof CLASSES)[number], UnitRole> = {
+  Warden: "Tank",
+  Striker: "Fighter",
+  Ranger: "Ranger",
+  Arcanist: "Mage",
+  Weaver: "Support",
+};
+const ROLE_OVERRIDES: Record<string, UnitRole> = {
+  thorn: "Assassin",
+  moss: "Summoner",
+  grove: "Summoner",
+};
 export const RULES = {
   prepMs: 30000,
   resultMs: 5000,
@@ -67,6 +150,7 @@ const unitSchema = z.object({
   cost: z.number().int().min(1).max(5),
   origin: z.enum(ORIGINS),
   class: z.enum(CLASSES),
+  role: z.enum(ROLES),
   hp: z.number().positive(),
   attack: z.number().positive(),
   speed: z.number().positive(),
@@ -136,6 +220,7 @@ export const UNITS: UnitDef[] = rows.map(
       cost,
       origin: ORIGINS[o],
       class: CLASSES[c],
+      role: ROLE_OVERRIDES[id] ?? CLASS_ROLES[CLASSES[c]],
       glyph,
       hp: (c === 0 ? 780 : c === 1 ? 600 : 450) + cost * 60,
       attack: (c === 2 ? 66 : 48) + cost * 8,

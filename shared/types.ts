@@ -11,6 +11,8 @@ export interface Unit {
   star: Star;
   slot: number;
   items: string[];
+  /** Transient summons are never eligible for permanent formation deployment. */
+  summoned?: boolean;
 }
 export interface Player {
   id: string;
@@ -28,6 +30,7 @@ export interface Player {
   streak: number;
   rank?: number;
   lastResult?: string;
+  blockedSlots?: number[];
 }
 export interface Fighter {
   id: string;
@@ -42,6 +45,13 @@ export interface Fighter {
   star: Star;
   status: string[];
   summon?: boolean;
+  attack?: number;
+  armor?: number;
+  resist?: number;
+  speed?: number;
+  range?: number;
+  maxMana?: number;
+  items?: string[];
 }
 export interface CombatEvent {
   tick: number;
@@ -75,6 +85,24 @@ export interface Battle {
   damage: number;
   frames: CombatFrame[];
   duration: number;
+  startedAt?: number;
+  playbackRate?: number;
+}
+export interface DeployMove {
+  unitId: string;
+  defId: string;
+  star: Star;
+  items: string[];
+  fromSlot: number;
+  toSlot: number;
+}
+export interface AutoDeployReport {
+  id: string;
+  playerId: string;
+  round: number;
+  at: number;
+  moves: DeployMove[];
+  repaired: number;
 }
 export interface Room {
   key: string;
@@ -88,6 +116,7 @@ export interface Room {
   createdAt: number;
   updatedAt: number;
   revision: number;
+  deployments?: AutoDeployReport[];
 }
 export interface Snapshot {
   version: 1;
@@ -95,6 +124,7 @@ export interface Snapshot {
   you: string;
   serverTime: number;
   devTools: boolean;
+  autoDeployPreview?: string[];
 }
 export type Action =
   | { type: "ready"; ready: boolean }

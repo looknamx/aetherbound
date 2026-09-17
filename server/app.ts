@@ -6,6 +6,7 @@ import { GameEngine, type Session } from "./engine";
 import { archiveMatch } from "./persistence";
 import { enterSchema, envelopeSchema } from "../shared/protocol";
 import type { Reply, Snapshot } from "../shared/types";
+import { previewAutoDeploy } from "../shared/autoDeploy";
 export function createGameServer(
   options: { devTools?: boolean; archive?: boolean } = {},
 ) {
@@ -85,6 +86,10 @@ export function createGameServer(
         you: s.playerId,
         serverTime: Date.now(),
         devTools: isDev(socket),
+        autoDeployPreview:
+          room.phase === "Preparing" && own.hp > 0
+            ? previewAutoDeploy(own)
+            : [],
       } satisfies Snapshot);
     }
   }
