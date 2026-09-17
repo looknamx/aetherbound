@@ -1,0 +1,19 @@
+services:
+  - type: web
+    name: aetherbound
+    runtime: node
+    plan: free
+    buildCommand: npm ci && npm run db:generate && npm run build
+    startCommand: npx tsx server/index.ts
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: "3001"
+      - key: HOST
+        value: "0.0.0.0"
+      - key: ENABLE_DEV_TOOLS
+        value: "false"
+      - key: CLIENT_ORIGIN
+        sync: false
+
