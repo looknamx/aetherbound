@@ -1,11 +1,12 @@
 import { BOARD, ROLE_CONFIG, UNIT_MAP } from "./content";
 import type { Player, Unit } from "./types";
+import { isDeploymentSlot } from "./deploymentZone";
 export const isFieldSlot = (slot: number) =>
   Number.isInteger(slot) && slot >= 0 && slot < BOARD.cells;
 export const isLegalFieldSlot = (
   slot: number,
   blocked: readonly number[] = [],
-) => isFieldSlot(slot) && !blocked.includes(slot);
+) => isDeploymentSlot(slot) && !blocked.includes(slot);
 export function deploymentLimit(player: Pick<Player, "level">) {
   return Number.isFinite(player.level)
     ? Math.max(0, Math.min(8, Math.floor(player.level)))

@@ -33,12 +33,12 @@ describe("deterministic combat", () => {
     const kinds = new Set<string>();
     for (const d of UNITS) {
       const a = player("a", [
-          unit(d.id, "a", 12, 2, ["moonwell", "moonwell", "moonwell"]),
-          unit("cinder", "ally", 13),
+          unit(d.id, "a", 18, 2, ["moonwell", "moonwell", "moonwell"]),
+          unit("cinder", "ally", 19),
         ]),
         b = player("b", [
-          unit("rivet", "b", 12, 3),
-          unit("cinder", "c", 13, 3),
+          unit("rivet", "b", 18, 3),
+          unit("cinder", "c", 19, 3),
         ]);
       const events = simulate(a, b, 91).frames.flatMap((f) => f.events);
       for (const e of events) {
@@ -59,20 +59,23 @@ describe("deterministic combat", () => {
   });
   it("item stats and synergy effects change combat actor stats", () => {
     const a = player("a", [
-      unit("cinder", "a", 0, 1, ["heartglass"]),
-      unit("rivet", "b", 1),
+      unit("cinder", "a", 18, 1, ["heartglass"]),
+      unit("rivet", "b", 19),
     ]);
-    const result = simulate(a, player("b", [unit("brook", "x", 0)]), 3);
+    const result = simulate(a, player("b", [unit("brook", "x", 18)]), 3);
     const first = result.frames[0].units[0];
     expect(first.maxHp).toBe(1040);
     expect(first.shield).toBe(80);
   });
   it("triggers item passives in combat", () => {
     const a = player("a", [
-      unit("rivet", "a", 0, 3, ["bloodopal", "stormpin", "thornseal"]),
-      unit("cinder", "c", 1, 1, ["dawnshell", "dewstone", "prismfang"]),
+      unit("rivet", "a", 18, 3, ["bloodopal", "stormpin", "thornseal"]),
+      unit("cinder", "c", 19, 1, ["dawnshell", "dewstone", "prismfang"]),
     ]);
-    const b = player("b", [unit("pyre", "b", 0, 3), unit("anvil", "d", 1, 3)]);
+    const b = player("b", [
+      unit("pyre", "b", 18, 3),
+      unit("anvil", "d", 19, 3),
+    ]);
     const events = simulate(a, b, 125).frames.flatMap((f) => f.events);
     expect(events.some((e) => e.type === "heal")).toBe(true);
     expect(events.some((e) => e.type === "shield" && e.value === 300)).toBe(

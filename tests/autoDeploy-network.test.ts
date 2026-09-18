@@ -28,7 +28,7 @@ it("two sockets receive identical deployed boards and reconnect restores them; f
     const p = room.players[0];
     p.level = 4;
     p.units = [
-      unit("cinder", "front", 2),
+      unit("cinder", "front", 20),
       unit("brook", "back", 32),
       unit("solara", "legend", 36, 1, ["sunshard"]),
       unit("rivet", "reserve-tank", 37),

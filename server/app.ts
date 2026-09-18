@@ -6,7 +6,8 @@ import { GameEngine, type Session } from "./engine";
 import { archiveMatch } from "./persistence";
 import { enterSchema, envelopeSchema } from "../shared/protocol";
 import type { Reply, Snapshot } from "../shared/types";
-import { previewAutoDeploy } from "../shared/autoDeploy";
+import { previewAutoDeploy, repairFormation } from "../shared/autoDeploy";
+import { PlacementError } from "../shared/deploymentZone";
 export function createGameServer(
   options: { devTools?: boolean; archive?: boolean } = {},
 ) {
@@ -60,6 +61,9 @@ export function createGameServer(
     ["127.0.0.1", "::1", "::ffff:127.0.0.1"].includes(socket.handshake.address);
   function broadcast(key: string) {
     const room = engine.rooms.get(key);
+    // Normalize legacy formations before any resync; never modify combat-frame coordinates.
+    if (room && room.players.reduce((n, p) => n + repairFormation(p), 0) > 0)
+      engine.touch(room);
     for (const [socketId, s] of bound) {
       if (s.key !== key) continue;
       const socket = io.sockets.sockets.get(socketId);
@@ -113,6 +117,7 @@ export function createGameServer(
         if (typeof cb === "function")
           cb({
             ok: false,
+            code: e instanceof PlacementError ? e.code : undefined,
             error: e instanceof Error ? e.message : "Invalid request.",
           });
       }

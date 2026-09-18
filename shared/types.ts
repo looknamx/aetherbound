@@ -31,8 +31,12 @@ export interface Player {
   rank?: number;
   lastResult?: string;
   blockedSlots?: number[];
+  latestBattleStats?: BattleStatsSnapshot;
 }
 export interface Fighter {
+  unitId?: string;
+  ownerId?: string;
+  summonOwnerId?: string;
   id: string;
   defId: string;
   side: 0 | 1;
@@ -54,6 +58,8 @@ export interface Fighter {
   items?: string[];
 }
 export interface CombatEvent {
+  absorbed?: number;
+  killed?: boolean;
   tick: number;
   type:
     | "move"
@@ -76,6 +82,7 @@ export interface CombatFrame {
   events: CombatEvent[];
 }
 export interface Battle {
+  stats?: BattleStatsSnapshot;
   id: string;
   a: string;
   b: string;
@@ -156,9 +163,35 @@ export interface Envelope {
   action: Action;
 }
 export interface Reply {
+  code?: string;
   ok: boolean;
   error?: string;
   key?: string;
   token?: string;
   playerId?: string;
+}
+export interface BattleUnitStats {
+  unitId: string;
+  combatUnitId: string;
+  ownerId: string;
+  defId: string;
+  name: string;
+  portrait: string;
+  star: Star;
+  originalSlot: number;
+  items: string[];
+  summoned: boolean;
+  damageDealt: number;
+  damageTaken: number;
+  damageAbsorbed: number;
+  healingDone: number;
+  shieldGranted: number;
+  unitsDefeated: number;
+  skillCasts: number;
+}
+export interface BattleStatsSnapshot {
+  version: 1;
+  battleId: string;
+  round: number;
+  units: BattleUnitStats[];
 }

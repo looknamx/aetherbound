@@ -16,9 +16,9 @@ The sky fractured into islands held together by living Aether. Wayfarers gather 
 
 ## Formation and controls
 
-- Six columns × six preparation rows. Eight bench slots. Maximum deployed units equals level (2–8).
+- Six columns × six battlefield rows, with preparation restricted to owner-relative rows 3–5 (the bottom half). Eight bench slots. Maximum deployed units equals level (2–8).
 - At preparation expiry, the server merges pending triples and fills empty deployment capacity from reserves using deterministic star/rarity/cost/power/synergy priority and role-based positions. Existing valid placements remain intact. See [Auto-deploy and cards](AUTO_DEPLOY_CARDS.md) for exact rules and DEF display calculations.
-- For combat both armies share one 6×6 grid. Each player's six preparation rows compress into three deployment rows, preserving front/back order; the opponent mirrors horizontally and vertically. Collisions occupy the next deterministic free tile in that side's half. This is an MVP layout assumption.
+- For combat both armies share one 6×6 grid. Side 0 starts in the bottom half and side 1 rotates its formation horizontally and vertically into the top half. Each client's display rotates canonical coordinates so their own army appears below. Battle movement and summons may cross the midpoint. See [statistics and placement rules](BATTLE_STATS_DEPLOYMENT.md).
 - Mouse: drag recruits and relics, or click recruit then destination. Keyboard: focus recruit, activate, focus tile/bench and activate. Touch: drag, or tap recruit then tile.
 - Move onto an occupied tile to swap. You may swap a reserve onto an occupied field tile at the unit limit.
 - Click a recruit to inspect. Sell returns full base cost × `3^(star−1)` and all relics. Movement, buying, selling, XP and equipment changes are restricted to preparation and living players.

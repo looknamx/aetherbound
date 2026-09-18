@@ -64,7 +64,7 @@ test("auto-deploy fills 2/4, broadcasts the same battle, survives reconnect, and
     await dev(a, "level");
     await buy(a, "cinder");
     await a.getByTestId("bench-0").click();
-    await a.getByRole("gridcell", { name: "Tile 1", exact: true }).click();
+    await a.getByRole("gridcell", { name: "Tile 19", exact: true }).click();
     await buy(a, "brook");
     await a.getByTestId("bench-0").click();
     await a.getByRole("gridcell", { name: "Tile 31", exact: true }).click();
@@ -81,7 +81,7 @@ test("auto-deploy fills 2/4, broadcasts the same battle, survives reconnect, and
     for (const card of [
       a.getByTestId("shop-1"),
       a.getByTestId("bench-0"),
-      a.getByRole("gridcell", { name: "Tile 1: Cinder Sentry" }),
+      a.getByRole("gridcell", { name: "Tile 19: Cinder Sentry" }),
     ]) {
       await expect(card.locator("[data-corner]")).toHaveCount(4);
     }

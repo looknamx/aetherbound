@@ -14,7 +14,7 @@ export interface DeploymentResult {
 }
 /** Moves legacy invalid/excess field entries into reserves without selling units or losing relics.
  * If the usual eight reserves are full, recovery-only slots >=44 preserve ownership. */
-function repairFormation(player: Player) {
+export function repairFormation(player: Player) {
   let repaired = 0;
   const occupied = new Set<number>();
   const limit = deploymentLimit(player);

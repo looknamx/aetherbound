@@ -9,6 +9,7 @@ import {
 } from "./content";
 import { RNG } from "./random";
 import type { Player, Unit } from "./types";
+import { isDeploymentSlot, PlacementError } from "./deploymentZone";
 export function rollShop(level: number, rng: RNG): (string | null)[] {
   return Array.from({ length: 5 }, () => {
     let roll = rng.next() * 100;
@@ -21,7 +22,9 @@ export function rollShop(level: number, rng: RNG): (string | null)[] {
 }
 export function synergies(units: Unit[]) {
   const unique = [
-    ...new Set(units.filter((u) => u.slot < 36).map((u) => u.defId)),
+    ...new Set(
+      units.filter((u) => isDeploymentSlot(u.slot)).map((u) => u.defId),
+    ),
   ].map((id) => UNIT_MAP[id]);
   return TRAITS.map((t) => {
     const count = unique.filter(
@@ -73,12 +76,16 @@ export function sell(p: Player, id: string) {
   p.units = p.units.filter((x) => x.id !== id);
 }
 export function move(p: Player, id: string, slot: number) {
+  if (slot >= 0 && slot < 36 && !isDeploymentSlot(slot))
+    throw new PlacementError();
   if (p.blockedSlots?.includes(slot)) throw Error("This field tile is locked.");
   if (!Number.isInteger(slot) || slot < 0 || slot > 43)
     throw Error("Invalid position.");
   const u = p.units.find((u) => u.id === id);
   if (!u) throw Error("Unit not found.");
   const occupant = p.units.find((x) => x.slot === slot);
+  if (occupant && u.slot < 36 && !isDeploymentSlot(u.slot))
+    throw new PlacementError();
   if (
     slot < 36 &&
     u.slot >= 36 &&

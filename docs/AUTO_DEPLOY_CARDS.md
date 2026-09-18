@@ -23,17 +23,17 @@ Weights live in `shared/autoDeployScoring.ts`. Rarity and cost are separate tupl
 
 ## Placement
 
-Rows are zero-based, with row 0 at the preparation front. `ROLE_CONFIG` in `shared/content.ts` contains the full fallback order.
+Rows are zero-based. Only owner-relative rows 3–5 are legal; row 3 is the front. `ROLE_CONFIG` in `shared/content.ts` contains the full fallback order.
 
 | Role | Preferred row | Column preference |
 |---|---|---|
-| Tank | 0, then 1 | Center outward |
-| Fighter | 1, then 0 | Center outward |
-| Assassin | 1, then 2 | Flanks inward |
+| Tank | 3, then 4 | Center outward |
+| Fighter | 3, then 4 | Center outward |
+| Assassin | 3, then 4 | Flanks inward |
 | Ranger / Mage / Support | 5, then 4 | Center outward |
-| Summoner | 3, then 4 | Center outward |
+| Summoner | 4, then 5 | Center outward |
 
-Occupied and blocked cells are skipped. Every role has all six rows as fallbacks. Stop when the level limit (clamped to 0–8), available recruits, or legal cells are exhausted. Combat retains the existing six-to-three-row compression for each army.
+Occupied and blocked cells are skipped. Every role falls back only within rows 3–5. Stop when the level limit (clamped to 0–8), available recruits, or legal cells are exhausted. Combat uses these positions directly, rotating the opponent's coordinates; there is no row compression. See [battle statistics and deployment zones](BATTLE_STATS_DEPLOYMENT.md).
 
 ## Card calculations and components
 

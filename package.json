@@ -10,6 +10,8 @@
     "build": "tsc --noEmit && vite build",
     "start": "tsx server/index.ts",
     "test": "vitest run",
+    "typecheck": "tsc --noEmit",
+    "lint": "node scripts/lint.mjs",
     "test:e2e": "playwright test",
     "db:generate": "prisma generate",
     "db:migrate": "prisma migrate deploy",

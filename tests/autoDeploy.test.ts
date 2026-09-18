@@ -13,7 +13,7 @@ const fieldCount = (p: ReturnType<typeof player>) =>
 describe("server auto-deployment", () => {
   it("fills 2/4 to 4/4 from a five-card bench, preserving existing positions", () => {
     const p = player("p", [
-      unit("cinder", "a", 0),
+      unit("cinder", "a", 18),
       unit("brook", "b", 30),
       ...["lumen", "rivet", "thorn", "flare", "nova"].map((d, i) =>
         unit(d, `r${i}`, 36 + i),
@@ -22,12 +22,12 @@ describe("server auto-deployment", () => {
     p.level = 4;
     expect(autoDeploy(p).moves).toHaveLength(2);
     expect(fieldCount(p)).toBe(4);
-    expect(p.units.find((u) => u.id === "a")!.slot).toBe(0);
+    expect(p.units.find((u) => u.id === "a")!.slot).toBe(18);
     expect(p.units.find((u) => u.id === "b")!.slot).toBe(30);
   });
   it("fills 2/4 to 3/4 with only one reserve", () => {
     const p = player("p", [
-      unit("cinder", "a", 0),
+      unit("cinder", "a", 18),
       unit("brook", "b", 30),
       unit("lumen", "c", 36),
     ]);
@@ -37,7 +37,7 @@ describe("server auto-deployment", () => {
   });
   it("does nothing to a full board or empty bench", () => {
     const p = player("p", [
-      unit("cinder", "a", 0),
+      unit("cinder", "a", 18),
       unit("brook", "b", 30),
       unit("lumen", "c", 36),
     ]);
@@ -47,7 +47,7 @@ describe("server auto-deployment", () => {
     expect(autoDeploy(player()).moves).toEqual([]);
   });
   it("zero limit returns old field units to reserves", () => {
-    const p = player("p", [unit("cinder", "a", 0), unit("brook", "b", 36)]);
+    const p = player("p", [unit("cinder", "a", 18), unit("brook", "b", 36)]);
     p.level = 0;
     autoDeploy(p);
     expect(fieldCount(p)).toBe(0);
@@ -92,17 +92,17 @@ describe("server auto-deployment", () => {
     }
   });
   it("places tanks front, rangers/mages back, assassins at a flank, summoners middle", () => {
-    expect(chooseAutoDeploySlot(unit("cinder"), new Set())).toBe(2);
+    expect(chooseAutoDeploySlot(unit("cinder"), new Set())).toBe(20);
     expect(chooseAutoDeploySlot(unit("lumen"), new Set())).toBe(32);
     expect(chooseAutoDeploySlot(unit("nova"), new Set())).toBe(32);
-    expect(chooseAutoDeploySlot(unit("thorn"), new Set())).toBe(6);
-    expect(chooseAutoDeploySlot(unit("moss"), new Set())).toBe(20);
+    expect(chooseAutoDeploySlot(unit("thorn"), new Set())).toBe(18);
+    expect(chooseAutoDeploySlot(unit("moss"), new Set())).toBe(26);
   });
   it("avoids occupied/blocked tiles and stops when no legal tile remains", () => {
     const p = player("p", [unit("cinder", "a", 36), unit("rivet", "b", 37)]);
-    p.blockedSlots = [0, 1, 2, 3, 4, 5];
+    p.blockedSlots = [18, 19, 20, 21, 22, 23];
     autoDeploy(p);
-    expect(p.units.every((u) => u.slot >= 6 && u.slot < 36)).toBe(true);
+    expect(p.units.every((u) => u.slot >= 24 && u.slot < 36)).toBe(true);
     expect(new Set(p.units.map((u) => u.slot)).size).toBe(2);
     const q = player("q", [unit("cinder", "a", 36)]);
     q.blockedSlots = Array.from({ length: 36 }, (_, i) => i);

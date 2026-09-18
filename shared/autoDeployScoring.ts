@@ -18,7 +18,7 @@ export function autoDeployScore(unit: Unit, army: Unit[]): number[] {
     s.armor * w.armor +
     s.resist * w.resist;
   const before = synergies(army).reduce((n, t) => n + t.tier, 0);
-  const after = synergies([...army, { ...unit, slot: 0 }]).reduce(
+  const after = synergies([...army, { ...unit, slot: BOARD.cells / 2 }]).reduce(
     (n, t) => n + t.tier,
     0,
   );

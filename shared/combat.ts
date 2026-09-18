@@ -1,3 +1,9 @@
+import { BattleStatsCollector, hpDamage } from "./battleStats";
+import {
+  isDeploymentSlot,
+  relativeToCanonical,
+  slotToPoint,
+} from "./deploymentZone";
 import { ITEM_MAP, RULES, STAT_MULT, UNIT_MAP } from "./content";
 import { battleStats } from "./stats";
 import { RNG } from "./random";
@@ -84,17 +90,12 @@ export function nextStep(
 function actors(p: Player, side: 0 | 1): Actor[] {
   const claimed = new Set<string>();
   return p.units
-    .filter((u) => u.slot < 36)
+    .filter((u) => isDeploymentSlot(u.slot))
     .sort((a, b) => a.slot - b.slot)
     .map((u) => {
       const d = UNIT_MAP[u.defId],
         stats = battleStats(u, p.units);
-      let x = u.slot % 6,
-        y = 3 + Math.floor(Math.floor(u.slot / 6) / 2);
-      if (side === 1) {
-        x = 5 - x;
-        y = 5 - y;
-      }
+      let { x, y } = relativeToCanonical(slotToPoint(u.slot), side);
       if (claimed.has(`${x},${y}`)) {
         const free = Array.from({ length: 18 }, (_, i) => ({
           x: i % 6,
@@ -107,6 +108,8 @@ function actors(p: Player, side: 0 | 1): Actor[] {
       const a: Actor = {
         ...stats,
         id: `${side}:${u.id}`,
+        unitId: u.id,
+        ownerId: p.id,
         defId: u.defId,
         star: u.star,
         side,
@@ -134,9 +137,18 @@ export function simulate(
   b: Player,
   seed: number,
   ghost = false,
+  round = 0,
 ): Battle {
   const rng = new RNG(seed);
   const units = [...actors(a, 0), ...actors(b, 1)];
+  const battleId = `${round}:${a.id}-${b.id}-${seed}`;
+  const collector = new BattleStatsCollector(battleId, round);
+  for (const u of units)
+    collector.register(
+      u,
+      u.ownerId!,
+      (u.side === 0 ? a : b).units.find((card) => card.id === u.unitId)!.slot,
+    );
   const frames: CombatFrame[] = [];
   let events: CombatEvent[] = [];
   let tick = 0;
@@ -146,7 +158,11 @@ export function simulate(
     target?: string,
     value?: number,
     text?: string,
-  ) => events.push({ tick, type, source, target, value, text });
+  ) => {
+    const event: CombatEvent = { tick, type, source, target, value, text };
+    events.push(event);
+    collector.record(event);
+  };
   const passive = (u: Actor, name: string) =>
     u.items
       .filter((id) => ITEM_MAP[id].passive === name)
@@ -160,13 +176,24 @@ export function simulate(
   };
   const hit = (s: Actor, t: Actor, raw: number, magic: boolean) => {
     if (t.hp <= 0) return 0;
-    let n = damageAfterResistance(raw, magic ? t.resist : t.armor);
-    const absorb = Math.min(t.shield, n);
-    t.shield -= absorb;
-    n -= absorb;
+    const reduced =
+      raw <= 0 ? 0 : damageAfterResistance(raw, magic ? t.resist : t.armor);
+    const { damage: n, absorbed } = hpDamage(reduced, t.hp, t.shield);
+    t.shield -= absorbed;
     t.hp = Math.max(0, t.hp - n);
     t.mana = Math.min(t.maxMana, t.mana + 8);
-    emit("damage", s.id, t.id, n, magic ? "magic" : "physical");
+    const event: CombatEvent = {
+      tick,
+      type: "damage",
+      source: s.id,
+      target: t.id,
+      value: n,
+      absorbed,
+      killed: t.hp <= 0,
+      text: magic ? "magic" : "physical",
+    };
+    events.push(event);
+    collector.record(event);
     if (t.hp <= 0) emit("death", t.id);
     else if (!t.lifeline && t.hp < t.maxHp * 0.3 && passive(t, "lifeline")) {
       t.lifeline = true;
@@ -180,6 +207,9 @@ export function simulate(
       tick,
       units: units.map((u) => ({
         id: u.id,
+        unitId: u.unitId,
+        ownerId: u.ownerId,
+        summonOwnerId: u.summonOwnerId,
         defId: u.defId,
         side: u.side,
         x: u.x,
@@ -284,6 +314,8 @@ export function simulate(
               ...pos,
               id: `${u.id}:echo${u.summons}`,
               summon: true,
+              unitId: undefined,
+              summonOwnerId: u.id,
               hp: power * 1.5,
               maxHp: power * 1.5,
               attack: power * 0.22,
@@ -297,6 +329,7 @@ export function simulate(
               regen: 0,
             };
             units.push(echo);
+            collector.register(echo, u.ownerId!, -1, u.id);
             emit("summon", u.id, echo.id);
           }
         } else {
@@ -361,7 +394,8 @@ export function simulate(
     left.length && !right.length ? 0 : right.length && !left.length ? 1 : null;
   const survivors = winner === 0 ? left : right;
   return {
-    id: `${a.id}-${b.id}-${seed}`,
+    id: battleId,
+    stats: collector.snapshot(),
     a: a.id,
     b: b.id,
     ghost,

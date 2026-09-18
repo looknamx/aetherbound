@@ -49,20 +49,20 @@ describe("economy and content", () => {
   });
   it("merges across board and bench and keeps overflow relics", () => {
     const p = player("p", [
-      unit("cinder", "a", 0, 1, ["sunshard", "ironleaf"]),
+      unit("cinder", "a", 18, 1, ["sunshard", "ironleaf"]),
       unit("cinder", "b", 36, 1, ["moonwell"]),
       unit("cinder", "c", 37, 1, ["dawnshell"]),
     ]);
     mergeUnits(p);
     expect(p.units).toHaveLength(1);
-    expect(p.units[0]).toMatchObject({ id: "a", star: 2, slot: 0 });
+    expect(p.units[0]).toMatchObject({ id: "a", star: 2, slot: 18 });
     expect(p.units[0].items).toHaveLength(3);
     expect(p.inventory).toEqual(["dawnshell"]);
   });
   it("cascades nine 1-star units into 3-star and never makes 4-star", () => {
     const p = player(
       "p",
-      Array.from({ length: 9 }, (_, i) => unit("cinder", String(i), i)),
+      Array.from({ length: 9 }, (_, i) => unit("cinder", String(i), 18 + i)),
     );
     mergeUnits(p);
     expect(p.units).toHaveLength(1);
@@ -86,15 +86,15 @@ describe("economy and content", () => {
   });
   it("enforces field limits, swaps, and slot bounds", () => {
     const p = player("p", [
-      unit("cinder", "a", 0),
-      unit("brook", "b", 1),
+      unit("cinder", "a", 18),
+      unit("brook", "b", 19),
       unit("rivet", "c", 36),
     ]);
-    expect(() => move(p, "c", 2)).toThrow("Field");
-    move(p, "c", 0);
+    expect(() => move(p, "c", 20)).toThrow("Field");
+    move(p, "c", 18);
     expect(p.units.find((u) => u.id === "a")!.slot).toBe(36);
     expect(() => move(p, "c", 44)).toThrow();
-    expect(() => move(p, "other", 4)).toThrow();
+    expect(() => move(p, "other", 22)).toThrow();
   });
   it("equips at most 3 owned relics and can move relics back", () => {
     const p = player("p", [unit()]);
@@ -121,9 +121,9 @@ describe("economy and content", () => {
   });
   it("counts unique recruits rather than duplicate copies for synergies", () => {
     const p = player("p", [
-      unit("cinder", "a", 0),
-      unit("cinder", "b", 1),
-      unit("flare", "c", 2),
+      unit("cinder", "a", 18),
+      unit("cinder", "b", 19),
+      unit("flare", "c", 20),
       unit("pyre", "d", 36),
     ]);
     const t = synergies(p.units).find((t) => t.id === "Emberkin")!;

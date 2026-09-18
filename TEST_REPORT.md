@@ -1,4 +1,22 @@
-# Test report — 17 September 2026
+# Test report — 18 September 2026
+
+## Latest change: battle statistics and deployment zones
+
+- Baseline before edits: **51/51 tests passed**. No pre-existing failures were observed.
+- Final `npm test`: **107/107 passed across 10 files**, including unit tests, React server-rendering tests and real two-client Socket.IO integration tests without a browser.
+- `npm run typecheck`: passed.
+- `npm run lint`: passed. This new focused AST linter checks explicit `any`, debugger statements and loose equality; it uses installed TypeScript without adding dependencies.
+- `npm run build`: passed (84 modules transformed).
+- New coverage: actual HP damage after resistance/shields, overkill, repeated DoT-source events, healing, self-damage, summon attribution/friendly fire, instance identity, dead-unit retention, snapshot survival after sale/merge/reconnect, round separation, echo battle attribution, sorting and missing-data UI.
+- Deployment coverage: all 18 legal and 18 illegal cells, bench/field moves and invalid swaps, atomic error responses, replay protection, coordinate round trips, legal auto-deploy and exhausted cells, legacy repair/reconnect, and unrestricted battle pathfinding across the middle.
+- Socket integration verifies `INVALID_PLACEMENT_ZONE`, unchanged state after rejection, identical authoritative stats for both clients, rejected forged statistics and serialized latest results on reconnect.
+- No dependency or lockfile changes. Browser test fixtures were adjusted to the new legal rows but **not executed**.
+- **No game was launched, no browser opened and no manual playtest performed for this change.** Only isolated automated integration servers were started by tests. Visual layout and actual pointer/touch behavior are not browser-verified.
+- All changes remain uncommitted in the working tree; no push was performed.
+
+See [implementation, rules and remaining limits](docs/BATTLE_STATS_DEPLOYMENT.md). The screenshots and interactive results below are **historical evidence from 17 September**, not validation of this change.
+
+# Previous test report — 17 September 2026
 
 ## Automated verification
 

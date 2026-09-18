@@ -13,7 +13,7 @@ describe("shared card statistics", () => {
   });
   it("ATK and DEF include stars and permanent relics", () => {
     const stats = permanentStats(
-      unit("cinder", "a", 0, 2, ["sunshard", "ironleaf", "mistcloak"]),
+      unit("cinder", "a", 18, 2, ["sunshard", "ironleaf", "mistcloak"]),
     );
     expect(stats.attack).toBeCloseTo(56 * 1.8 + 22);
     expect(stats.armor).toBe(57);
@@ -22,10 +22,10 @@ describe("shared card statistics", () => {
   });
   it("server frames use the same calculation and show synergy deltas separately", () => {
     const a = player("a", [
-        unit("cinder", "x", 0, 2, ["sunshard"]),
-        unit("flare", "f", 1),
+        unit("cinder", "x", 18, 2, ["sunshard"]),
+        unit("flare", "f", 19),
       ]),
-      b = player("b", [unit("rivet", "y", 1)]);
+      b = player("b", [unit("rivet", "y", 19)]);
     const expected = battleStats(a.units[0], a.units),
       fighter = simulate(a, b, 42).frames[0].units[0];
     expect(fighter.attack).toBe(expected.attack);
@@ -43,7 +43,7 @@ describe("shared card statistics", () => {
     (variant) => {
       const html = renderToStaticMarkup(
         <UnitCard
-          unit={unit("cinder", "x", 0, 2, ["sunshard", "ironleaf"])}
+          unit={unit("cinder", "x", 18, 2, ["sunshard", "ironleaf"])}
           variant={variant}
         />,
       );
@@ -65,7 +65,7 @@ describe("shared card statistics", () => {
   it("details expose resistances, range, speed, mana, skill, traits and items", () => {
     const html = renderToStaticMarkup(
       <UnitCard
-        unit={unit("nova", "a", 0, 1, ["moonwell"])}
+        unit={unit("nova", "a", 18, 1, ["moonwell"])}
         variant="detail"
       />,
     );

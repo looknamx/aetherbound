@@ -1,3 +1,7 @@
+import {
+  canonicalToRelative,
+  isDeploymentSlot,
+} from "../../shared/deploymentZone";
 import { useEffect, useRef, useState } from "react";
 import Phaser from "phaser";
 import { BOARD, RULES, UNIT_MAP } from "../../shared/content";
@@ -22,6 +26,7 @@ interface Props {
   sound: boolean;
   playerId?: string;
   blockedSlots?: number[];
+  dragging?: boolean;
 }
 export function playbackFrame(
   battle: Battle,
@@ -91,7 +96,9 @@ export function CardBoard(props: Props) {
           for (let x = 0; x < BOARD.size; x++) {
             const px = OFFSET + x * CELL,
               py = OFFSET + y * CELL,
-              locked = p.blockedSlots?.includes(y * BOARD.size + x);
+              locked =
+                p.blockedSlots?.includes(y * BOARD.size + x) ||
+                (!p.battle && !isDeploymentSlot(y * BOARD.size + x));
             g.fillStyle(locked ? 0x111d22 : (x + y) % 2 ? 0x1d343a : 0x243d41);
             g.fillRoundedRect(px + 2, py + 2, CELL - 4, CELL - 4, 4);
             g.lineStyle(1, 0x7ca999, 0.12);
@@ -119,11 +126,14 @@ export function CardBoard(props: Props) {
             event.type === "cast" ? 0xc4a4fa : 0xecd99d,
             0.9,
           );
+          const side = p.battle.a === p.playerId ? 0 : 1;
+          const from = canonicalToRelative(source, side),
+            to = canonicalToRelative(target, side);
           g.lineBetween(
-            OFFSET + (source.x + 0.5) * CELL,
-            OFFSET + (source.y + 0.5) * CELL,
-            OFFSET + (target.x + 0.5) * CELL,
-            OFFSET + (target.y + 0.5) * CELL,
+            OFFSET + (from.x + 0.5) * CELL,
+            OFFSET + (from.y + 0.5) * CELL,
+            OFFSET + (to.x + 0.5) * CELL,
+            OFFSET + (to.y + 0.5) * CELL,
           );
         }
       }
@@ -146,6 +156,12 @@ export function CardBoard(props: Props) {
     ownSide = props.battle?.a === props.playerId ? 0 : 1;
   return (
     <>
+      {!props.battle && (
+        <div className="zone-legend">
+          <span>ด้านบน · พื้นที่ฝ่ายตรงข้าม</span>
+          <span>ด้านล่าง · พื้นที่วางของคุณ 6×3</span>
+        </div>
+      )}
       <div className="arena" ref={mount}>
         <div
           className="board-input"
@@ -154,19 +170,25 @@ export function CardBoard(props: Props) {
         >
           {Array.from({ length: BOARD.cells }, (_, slot) => {
             const unit = props.units.find((u) => u.slot === slot),
-              blocked = props.blockedSlots?.includes(slot);
+              blocked = props.blockedSlots?.includes(slot),
+              enemyZone = !isDeploymentSlot(slot);
             return (
               <button
                 key={slot}
                 role="gridcell"
-                className={`tile ${unit && unit.id === props.selected ? "selected" : ""} ${props.selected && !props.disabled ? "available" : ""}`}
+                className={`tile ${enemyZone ? "enemy-zone" : "own-zone"} ${unit && unit.id === props.selected ? "selected" : ""} ${(props.selected || props.dragging) && !props.disabled && !enemyZone && !blocked ? "available" : ""}`}
                 data-slot={slot}
                 data-unit={!props.battle ? unit?.id : undefined}
                 aria-label={`Tile ${slot + 1}${unit ? `: ${UNIT_MAP[unit.defId].name}` : ""}${blocked ? " (locked)" : ""}`}
+                aria-disabled={enemyZone || blocked || props.disabled}
                 disabled={
                   !!props.battle || blocked || (props.disabled && !unit)
                 }
                 onClick={() => {
+                  if (enemyZone) {
+                    props.onSlot(slot);
+                    return;
+                  }
                   if (
                     unit &&
                     (props.disabled ||
@@ -184,7 +206,11 @@ export function CardBoard(props: Props) {
                     setCardDragImage(e, unit.id);
                   }
                 }}
-                onDragOver={(e) => e.preventDefault()}
+                onDragOver={(e) => {
+                  e.preventDefault();
+                  e.dataTransfer.dropEffect =
+                    enemyZone || blocked || props.disabled ? "none" : "move";
+                }}
                 onDrop={(e) => {
                   e.preventDefault();
                   if (props.disabled) return;
@@ -211,6 +237,7 @@ export function CardBoard(props: Props) {
         {props.battle && frame && (
           <div className="combat-layer" aria-label="Battle cards">
             {frame.units.map((f) => {
+              const position = canonicalToRelative(f, ownSide);
               const hurt = frame.events.some(
                   (e) => e.type === "damage" && e.target === f.id,
                 ),
@@ -222,8 +249,8 @@ export function CardBoard(props: Props) {
                   key={f.id}
                   className={`combat-card ${hurt ? "is-hit" : ""} ${cast ? "is-casting" : ""}`}
                   style={{
-                    left: `${(f.x / BOARD.size) * 100}%`,
-                    top: `${(f.y / BOARD.size) * 100}%`,
+                    left: `${(position.x / BOARD.size) * 100}%`,
+                    top: `${(position.y / BOARD.size) * 100}%`,
                   }}
                   aria-label={`Inspect ${f.side === ownSide ? "ally" : "enemy"} ${UNIT_MAP[f.defId].name}`}
                   onClick={() => setInspected(f.id)}

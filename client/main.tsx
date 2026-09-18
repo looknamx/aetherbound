@@ -1,3 +1,5 @@
+import { LatestBattleStatsPanel } from "./cards/LatestBattleStatsPanel";
+import { isDeploymentSlot, PLACEMENT_MESSAGE } from "../shared/deploymentZone";
 import React, { useEffect, useRef, useState } from "react";
 import { createRoot } from "react-dom/client";
 import { Board } from "./Board";
@@ -168,6 +170,10 @@ function App() {
     } else setError(reply.error!);
   };
   const drop = (slot: number, id?: string, item?: number) => {
+    if (slot < 36 && !isDeploymentSlot(slot)) {
+      setError(PLACEMENT_MESSAGE);
+      return;
+    }
     const target = p?.units.find((u) => u.slot === slot);
     if (item !== undefined) {
       if (target)
@@ -605,6 +611,7 @@ function App() {
                 sound={sound}
                 playerId={p.id}
                 blockedSlots={p.blockedSlots}
+                dragging={!!dragView}
               />
               {r.deployments
                 ?.filter(
@@ -835,6 +842,11 @@ function App() {
               </div>
             </aside>
           </div>
+          <LatestBattleStatsPanel
+            snapshot={p.latestBattleStats}
+            battling={r.phase === "Battling"}
+            round={r.round}
+          />
           <section className="shop">
             <div className="shop-heading">
               <div>

@@ -102,6 +102,7 @@ npm start
 
 - [กติกาและสมมติฐาน](docs/RULES.md)
 - [Auto-deploy, ระบบการ์ด และสูตรคำนวณ](docs/AUTO_DEPLOY_CARDS.md)
+- [สถิติรอบล่าสุดและพื้นที่วาง 6×3](docs/BATTLE_STATS_DEPLOYMENT.md)
 - [Architecture และ event protocol](docs/ARCHITECTURE.md)
 - [รายชื่อตัวละคร สกิล traits และไอเทม](docs/CONTENT.md)
 - [ผลการทดสอบจริง](TEST_REPORT.md)

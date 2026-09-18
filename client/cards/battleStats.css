@@ -1,0 +1,109 @@
+.latest-stats {
+  --dealt: #e8c684;
+  --taken: #dba3b8;
+  margin: 20px 0;
+  padding: 16px;
+  background: #101f26;
+  border: 1px solid #34514f;
+  border-radius: 10px;
+}
+.latest-stats summary {
+  cursor: pointer;
+  color: #e5d6b8;
+}
+.latest-stats p,
+.latest-stats label {
+  font-size: 12px;
+  color: #b8ccca;
+}
+.latest-stats select {
+  max-width: 100%;
+  background: #1d343a;
+  color: #f0eee3;
+  padding: 7px;
+  border: 1px solid #56746c;
+}
+.latest-stats ol {
+  list-style: none;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(230px, 100%), 1fr));
+  gap: 12px;
+}
+.latest-stats li {
+  min-width: 0;
+  border-top: 1px solid #34514f;
+  padding-top: 10px;
+}
+.stats-recruit {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+}
+.stats-recruit svg {
+  width: 42px;
+  height: 42px;
+  flex-shrink: 0;
+}
+.stats-recruit strong span {
+  color: #e8c684;
+}
+.stats-meter {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 4px;
+  margin-top: 8px;
+  font-size: 12px;
+}
+.stats-meter.dealt {
+  color: var(--dealt);
+}
+.stats-meter.taken {
+  color: var(--taken);
+}
+.stats-meter meter {
+  grid-column: 1/-1;
+  width: 100%;
+  height: 8px;
+}
+.stats-meter meter::-webkit-meter-bar {
+  background: #263d40;
+  border: 0;
+}
+.stats-meter.dealt meter::-webkit-meter-optimum-value {
+  background: var(--dealt);
+}
+.stats-meter.taken meter::-webkit-meter-optimum-value {
+  background: var(--taken);
+}
+.stats-meter.dealt meter::-moz-meter-bar {
+  background: var(--dealt);
+}
+.stats-meter.taken meter::-moz-meter-bar {
+  background: var(--taken);
+}
+.latest-stats li details {
+  font-size: 11px;
+  margin-top: 8px;
+  overflow-wrap: anywhere;
+}
+.tile.enemy-zone {
+  background: #090f1866;
+  cursor: not-allowed;
+  border: 1px dashed #66546144;
+}
+.tile.own-zone {
+  border: 1px solid #89d4b42e;
+}
+.tile.own-zone.available {
+  background: #8dddac22;
+}
+.zone-legend {
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  font-size: 11px;
+  color: #a9cfc0;
+  margin: 6px 0;
+}

@@ -12,7 +12,7 @@ import {
 } from "../shared/economy";
 import { simulate } from "../shared/combat";
 import { RNG } from "../shared/random";
-import { autoDeploy } from "../shared/autoDeploy";
+import { autoDeploy, repairFormation } from "../shared/autoDeploy";
 import type { Action, Player, Room } from "../shared/types";
 export interface Session {
   token: string;
@@ -90,6 +90,7 @@ export class GameEngine {
       throw Error("Session expired. Create or join a room.");
     const r = this.rooms.get(s.key)!;
     r.players.find((p) => p.id === s.playerId)!.connected = true;
+    for (const p of r.players) repairFormation(p);
     if (!r.players.some((p) => p.id === r.hostId && p.connected))
       r.hostId = s.playerId;
     this.touch(r);
@@ -113,7 +114,6 @@ export class GameEngine {
     const r = this.rooms.get(s.key);
     if (!r) throw Error("Room expired.");
     if (s.seen.has(id)) return;
-    r.updatedAt = Date.now();
     const p = r.players.find((p) => p.id === s.playerId)!;
     if (action.type === "ready") {
       if (r.phase !== "Lobby")
@@ -185,6 +185,7 @@ export class GameEngine {
     r.battles = [];
     const rng = this.rng(r);
     for (const p of r.players.filter((p) => p.hp > 0)) {
+      repairFormation(p);
       if (!p.locked) p.shop = rollShop(p.level, rng);
     }
     r.seed = rng.state >>> 0;
@@ -210,7 +211,13 @@ export class GameEngine {
       const a = ordered[i],
         b = ordered[i + 1] ?? ordered[0];
       r.battles.push(
-        simulate(a, b, Math.floor(rng.next() * 0xffffffff), !ordered[i + 1]),
+        simulate(
+          a,
+          b,
+          Math.floor(rng.next() * 0xffffffff),
+          !ordered[i + 1],
+          r.round,
+        ),
       );
     }
     r.seed = rng.state >>> 0;
@@ -227,6 +234,16 @@ export class GameEngine {
   }
   resolve(r: Room) {
     r.phase = "Resolving";
+    for (const p of r.players) {
+      const battle = r.battles.find(
+        (b) => b.a === p.id || (b.b === p.id && !b.ghost),
+      );
+      if (battle?.stats)
+        p.latestBattleStats = structuredClone({
+          ...battle.stats,
+          units: battle.stats.units.filter((u) => u.ownerId === p.id),
+        });
+    }
     const outcomes = new Map<string, { win: boolean | null; damage: number }>();
     for (const b of r.battles) {
       const pressure = 2 + Math.floor(r.round / 3);
@@ -324,7 +341,8 @@ export class GameEngine {
       r.seed = n;
       return;
     }
-    if (r.phase !== "Preparing") throw Error("Use during preparation.");
+    if (r.phase !== "Preparing" || Date.now() >= r.deadline)
+      throw Error("Use during preparation.");
     switch (a.command) {
       case "gold":
         p.gold += 50;
