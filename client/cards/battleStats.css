@@ -36,10 +36,15 @@
   padding-top: 10px;
 }
 .stats-recruit {
+  min-width: 0;
   display: flex;
   align-items: center;
   gap: 8px;
   font-size: 14px;
+}
+.stats-recruit strong {
+  min-width: 0;
+  overflow-wrap: anywhere;
 }
 .stats-recruit svg {
   width: 42px;
@@ -51,7 +56,7 @@
 }
 .stats-meter {
   display: grid;
-  grid-template-columns: 1fr auto;
+  grid-template-columns: minmax(0, 1fr) auto;
   gap: 4px;
   margin-top: 8px;
   font-size: 12px;
@@ -83,10 +88,46 @@
 .stats-meter.taken meter::-moz-meter-bar {
   background: var(--taken);
 }
-.latest-stats li details {
+.stat-details {
   font-size: 11px;
   margin-top: 8px;
-  overflow-wrap: anywhere;
+}
+.stat-details-toggle {
+  display: block;
+  max-width: 100%;
+  text-align: left;
+  color: #e5d6b8;
+  background: transparent;
+  border: 0;
+  padding: 6px 0;
+  cursor: pointer;
+}
+.stat-details-toggle:focus-visible {
+  outline: 2px solid #e8c684;
+  outline-offset: 2px;
+}
+.stat-details dl {
+  margin: 8px 0;
+}
+.stat-details dl > div {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 12px;
+  margin: 6px 0;
+}
+.stat-details dt {
+  flex: 1 1 140px;
+  min-width: 0;
+  color: #b8ccca;
+}
+.stat-details dd {
+  margin: 0;
+  color: #f0eee3;
+}
+.stats-meter strong,
+.stat-details dd {
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
 }
 .tile.enemy-zone {
   background: #090f1866;

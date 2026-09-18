@@ -1,5 +1,15 @@
 # Test report — 18 September 2026
 
+## Latest correction: safe player-facing statistics details
+
+- `npm test`: **130/130 passed** across 10 files, including UUID regression tests and React keyboard/ARIA/sorting tests in an isolated happy-dom environment.
+- `npm run typecheck` and `npm run lint`: passed.
+- `npm run build`: passed (84 modules). Final focused panel tests: **25/25 passed**. `git diff --check`: passed; only Windows line-ending conversion notices.
+- Added pinned development-only `happy-dom` for non-browser interaction tests; the lockfile records that addition. Combat calculations, shared gameplay and server code are unchanged in this correction.
+- Internal IDs/metadata are excluded by an explicit display projection. Thai labels, validated round numbers, finite numeric formatting and exact-value details replace raw interpolated IDs.
+- No game or browser was opened, no manual playtest was performed, and no commit/push was made. Layout behavior is not visually verified in a browser.
+- See [root cause, display rules and regression coverage](docs/STATS_DISPLAY_FIX.md). Earlier results below belong to prior changes.
+
 ## Latest change: battle statistics and deployment zones
 
 - Baseline before edits: **51/51 tests passed**. No pre-existing failures were observed.
