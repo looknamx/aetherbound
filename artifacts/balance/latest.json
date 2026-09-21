@@ -1,0 +1,1877 @@
+{
+  "version": 1,
+  "seeds": [
+    21,
+    22,
+    23,
+    24,
+    25,
+    26,
+    27,
+    28,
+    29,
+    30
+  ],
+  "matches": [
+    {
+      "seed": 21,
+      "rounds": 12,
+      "steps": 42,
+      "simulatedMs": 275500,
+      "matchDurationMs": 830542,
+      "placements": [
+        {
+          "difficulty": "easy",
+          "rank": 3
+        },
+        {
+          "difficulty": "normal",
+          "rank": 1
+        },
+        {
+          "difficulty": "hard",
+          "rank": 4
+        },
+        {
+          "difficulty": "hard",
+          "rank": 2
+        }
+      ],
+      "purchases": {
+        "reef": 15,
+        "thorn": 19,
+        "brook": 20,
+        "rivet": 13,
+        "flare": 15,
+        "nova": 11,
+        "lumen": 14,
+        "cinder": 15,
+        "pyre": 7,
+        "moss": 12,
+        "briar": 2,
+        "rill": 4,
+        "anvil": 3,
+        "coil": 1,
+        "vesper": 2
+      },
+      "itemSelections": {
+        "dewstone": 1,
+        "heartglass": 3,
+        "sunshard": 1,
+        "bloodopal": 3,
+        "stormpin": 1,
+        "ironleaf": 2,
+        "moonwell": 3,
+        "mistcloak": 2,
+        "thornseal": 1,
+        "dawnshell": 1,
+        "prismfang": 1
+      },
+      "augmentSelections": {
+        "resolve": 3,
+        "bastion": 1,
+        "outnumbered": 1,
+        "spring": 2,
+        "tempo": 2,
+        "artisan": 2
+      },
+      "synergyUsage": {
+        "Striker": 3,
+        "Warden": 22,
+        "Emberkin": 11,
+        "Tideborn": 2,
+        "Arcanist": 2,
+        "Verdant": 2,
+        "Ranger": 2
+      },
+      "unitRounds": {
+        "flare": {
+          "played": 15,
+          "won": 6
+        },
+        "thorn": {
+          "played": 21,
+          "won": 11
+        },
+        "rivet": {
+          "played": 29,
+          "won": 17
+        },
+        "nova": {
+          "played": 7,
+          "won": 2
+        },
+        "brook": {
+          "played": 14,
+          "won": 7
+        },
+        "reef": {
+          "played": 17,
+          "won": 7
+        },
+        "cinder": {
+          "played": 24,
+          "won": 15
+        },
+        "pyre": {
+          "played": 7,
+          "won": 1
+        },
+        "lumen": {
+          "played": 6,
+          "won": 3
+        },
+        "moss": {
+          "played": 11,
+          "won": 6
+        },
+        "briar": {
+          "played": 1,
+          "won": 0
+        },
+        "rill": {
+          "played": 1,
+          "won": 1
+        }
+      },
+      "pool": {
+        "version": 1,
+        "total": {
+          "cinder": 30,
+          "brook": 30,
+          "thorn": 30,
+          "lumen": 30,
+          "rivet": 30,
+          "flare": 24,
+          "reef": 24,
+          "moss": 24,
+          "nova": 24,
+          "anvil": 18,
+          "pyre": 18,
+          "rill": 18,
+          "briar": 18,
+          "vesper": 12,
+          "coil": 12,
+          "grove": 12,
+          "solara": 9,
+          "abyss": 9
+        },
+        "available": {
+          "cinder": 27,
+          "brook": 27,
+          "thorn": 27,
+          "lumen": 30,
+          "rivet": 24,
+          "flare": 21,
+          "reef": 24,
+          "moss": 21,
+          "nova": 24,
+          "anvil": 17,
+          "pyre": 18,
+          "rill": 14,
+          "briar": 17,
+          "vesper": 10,
+          "coil": 11,
+          "grove": 12,
+          "solara": 9,
+          "abyss": 9
+        }
+      }
+    },
+    {
+      "seed": 22,
+      "rounds": 15,
+      "steps": 51,
+      "simulatedMs": 368750,
+      "matchDurationMs": 1028801,
+      "placements": [
+        {
+          "difficulty": "easy",
+          "rank": 3
+        },
+        {
+          "difficulty": "normal",
+          "rank": 2
+        },
+        {
+          "difficulty": "hard",
+          "rank": 1
+        },
+        {
+          "difficulty": "hard",
+          "rank": 4
+        }
+      ],
+      "purchases": {
+        "brook": 20,
+        "rivet": 16,
+        "lumen": 16,
+        "cinder": 15,
+        "thorn": 17,
+        "flare": 11,
+        "reef": 12,
+        "pyre": 8,
+        "moss": 10,
+        "nova": 10,
+        "anvil": 8,
+        "briar": 7,
+        "rill": 6,
+        "coil": 3,
+        "grove": 2
+      },
+      "itemSelections": {
+        "sunshard": 3,
+        "ironleaf": 4,
+        "heartglass": 4,
+        "dawnshell": 2,
+        "windcoil": 3,
+        "moonwell": 1,
+        "thornseal": 2,
+        "dewstone": 1
+      },
+      "augmentSelections": {
+        "embers": 2,
+        "spring": 2,
+        "rookies": 1,
+        "discovery": 1,
+        "bastion": 1,
+        "artisan": 1,
+        "stipend": 1,
+        "outnumbered": 2,
+        "resolve": 1
+      },
+      "synergyUsage": {
+        "Emberkin": 10,
+        "Tideborn": 5,
+        "Verdant": 12,
+        "Warden": 29,
+        "Ranger": 7,
+        "Astral": 2,
+        "Striker": 2,
+        "Weaver": 1,
+        "Ironveil": 3
+      },
+      "unitRounds": {
+        "cinder": {
+          "played": 36,
+          "won": 21
+        },
+        "thorn": {
+          "played": 22,
+          "won": 13
+        },
+        "lumen": {
+          "played": 17,
+          "won": 8
+        },
+        "flare": {
+          "played": 17,
+          "won": 5
+        },
+        "brook": {
+          "played": 15,
+          "won": 7
+        },
+        "rivet": {
+          "played": 30,
+          "won": 16
+        },
+        "reef": {
+          "played": 24,
+          "won": 11
+        },
+        "pyre": {
+          "played": 6,
+          "won": 2
+        },
+        "moss": {
+          "played": 18,
+          "won": 11
+        },
+        "nova": {
+          "played": 5,
+          "won": 1
+        },
+        "anvil": {
+          "played": 5,
+          "won": 1
+        },
+        "briar": {
+          "played": 4,
+          "won": 2
+        },
+        "rill": {
+          "played": 3,
+          "won": 1
+        }
+      },
+      "pool": {
+        "version": 1,
+        "total": {
+          "cinder": 30,
+          "brook": 30,
+          "thorn": 30,
+          "lumen": 30,
+          "rivet": 30,
+          "flare": 24,
+          "reef": 24,
+          "moss": 24,
+          "nova": 24,
+          "anvil": 18,
+          "pyre": 18,
+          "rill": 18,
+          "briar": 18,
+          "vesper": 12,
+          "coil": 12,
+          "grove": 12,
+          "solara": 9,
+          "abyss": 9
+        },
+        "available": {
+          "cinder": 27,
+          "brook": 23,
+          "thorn": 27,
+          "lumen": 26,
+          "rivet": 24,
+          "flare": 24,
+          "reef": 20,
+          "moss": 21,
+          "nova": 24,
+          "anvil": 18,
+          "pyre": 15,
+          "rill": 16,
+          "briar": 15,
+          "vesper": 11,
+          "coil": 11,
+          "grove": 12,
+          "solara": 9,
+          "abyss": 9
+        }
+      }
+    },
+    {
+      "seed": 23,
+      "rounds": 12,
+      "steps": 42,
+      "simulatedMs": 214500,
+      "matchDurationMs": 769542,
+      "placements": [
+        {
+          "difficulty": "easy",
+          "rank": 3
+        },
+        {
+          "difficulty": "normal",
+          "rank": 1
+        },
+        {
+          "difficulty": "hard",
+          "rank": 4
+        },
+        {
+          "difficulty": "hard",
+          "rank": 2
+        }
+      ],
+      "purchases": {
+        "flare": 8,
+        "cinder": 15,
+        "brook": 15,
+        "rivet": 18,
+        "reef": 10,
+        "lumen": 18,
+        "thorn": 19,
+        "nova": 13,
+        "moss": 9,
+        "anvil": 6,
+        "briar": 5,
+        "pyre": 5,
+        "rill": 6,
+        "coil": 3,
+        "vesper": 1
+      },
+      "itemSelections": {
+        "moonwell": 2,
+        "dewstone": 1,
+        "heartglass": 3,
+        "ironleaf": 2,
+        "thornseal": 3,
+        "sunshard": 2,
+        "windcoil": 2,
+        "dawnshell": 1,
+        "stormpin": 1,
+        "bloodopal": 2
+      },
+      "augmentSelections": {
+        "bastion": 1,
+        "discovery": 1,
+        "tempo": 2,
+        "spring": 2,
+        "resolve": 1,
+        "embers": 1,
+        "stipend": 1,
+        "lookout": 1,
+        "outnumbered": 1
+      },
+      "synergyUsage": {
+        "Warden": 9,
+        "Emberkin": 7,
+        "Astral": 5,
+        "Ranger": 9,
+        "Striker": 4,
+        "Verdant": 5,
+        "Tideborn": 2,
+        "Arcanist": 2
+      },
+      "unitRounds": {
+        "reef": {
+          "played": 20,
+          "won": 15
+        },
+        "rivet": {
+          "played": 26,
+          "won": 17
+        },
+        "cinder": {
+          "played": 19,
+          "won": 6
+        },
+        "flare": {
+          "played": 10,
+          "won": 1
+        },
+        "nova": {
+          "played": 15,
+          "won": 9
+        },
+        "lumen": {
+          "played": 14,
+          "won": 7
+        },
+        "brook": {
+          "played": 4,
+          "won": 0
+        },
+        "thorn": {
+          "played": 19,
+          "won": 6
+        },
+        "moss": {
+          "played": 12,
+          "won": 9
+        },
+        "briar": {
+          "played": 3,
+          "won": 3
+        },
+        "rill": {
+          "played": 4,
+          "won": 1
+        },
+        "pyre": {
+          "played": 2,
+          "won": 2
+        },
+        "anvil": {
+          "played": 1,
+          "won": 0
+        }
+      },
+      "pool": {
+        "version": 1,
+        "total": {
+          "cinder": 30,
+          "brook": 30,
+          "thorn": 30,
+          "lumen": 30,
+          "rivet": 30,
+          "flare": 24,
+          "reef": 24,
+          "moss": 24,
+          "nova": 24,
+          "anvil": 18,
+          "pyre": 18,
+          "rill": 18,
+          "briar": 18,
+          "vesper": 12,
+          "coil": 12,
+          "grove": 12,
+          "solara": 9,
+          "abyss": 9
+        },
+        "available": {
+          "cinder": 30,
+          "brook": 26,
+          "thorn": 24,
+          "lumen": 26,
+          "rivet": 27,
+          "flare": 24,
+          "reef": 21,
+          "moss": 21,
+          "nova": 19,
+          "anvil": 16,
+          "pyre": 13,
+          "rill": 17,
+          "briar": 15,
+          "vesper": 12,
+          "coil": 12,
+          "grove": 12,
+          "solara": 9,
+          "abyss": 9
+        }
+      }
+    },
+    {
+      "seed": 24,
+      "rounds": 17,
+      "steps": 57,
+      "simulatedMs": 378750,
+      "matchDurationMs": 1108807,
+      "placements": [
+        {
+          "difficulty": "easy",
+          "rank": 1
+        },
+        {
+          "difficulty": "normal",
+          "rank": 3
+        },
+        {
+          "difficulty": "hard",
+          "rank": 2
+        },
+        {
+          "difficulty": "hard",
+          "rank": 4
+        }
+      ],
+      "purchases": {
+        "nova": 15,
+        "rivet": 23,
+        "cinder": 13,
+        "thorn": 15,
+        "brook": 24,
+        "moss": 16,
+        "reef": 11,
+        "lumen": 10,
+        "flare": 12,
+        "pyre": 7,
+        "rill": 8,
+        "anvil": 4,
+        "briar": 7,
+        "grove": 5,
+        "vesper": 1,
+        "abyss": 1,
+        "coil": 1
+      },
+      "itemSelections": {
+        "moonwell": 2,
+        "ironleaf": 3,
+        "sunshard": 3,
+        "mistcloak": 1,
+        "heartglass": 2,
+        "windcoil": 1,
+        "dewstone": 1,
+        "dawnshell": 2,
+        "stormpin": 2,
+        "bloodopal": 1,
+        "prismfang": 1
+      },
+      "augmentSelections": {
+        "outnumbered": 2,
+        "resolve": 2,
+        "embers": 1,
+        "tempo": 3,
+        "lookout": 1,
+        "bargain": 1,
+        "discovery": 2
+      },
+      "synergyUsage": {
+        "Weaver": 8,
+        "Warden": 19,
+        "Verdant": 12,
+        "Ranger": 3,
+        "Astral": 2,
+        "Striker": 1,
+        "Emberkin": 7,
+        "Arcanist": 7,
+        "Tideborn": 1
+      },
+      "unitRounds": {
+        "nova": {
+          "played": 31,
+          "won": 17
+        },
+        "brook": {
+          "played": 19,
+          "won": 11
+        },
+        "thorn": {
+          "played": 16,
+          "won": 5
+        },
+        "moss": {
+          "played": 29,
+          "won": 13
+        },
+        "reef": {
+          "played": 13,
+          "won": 7
+        },
+        "rivet": {
+          "played": 38,
+          "won": 20
+        },
+        "cinder": {
+          "played": 24,
+          "won": 14
+        },
+        "flare": {
+          "played": 18,
+          "won": 9
+        },
+        "lumen": {
+          "played": 7,
+          "won": 2
+        },
+        "pyre": {
+          "played": 7,
+          "won": 2
+        },
+        "grove": {
+          "played": 5,
+          "won": 3
+        },
+        "briar": {
+          "played": 4,
+          "won": 2
+        },
+        "rill": {
+          "played": 4,
+          "won": 2
+        }
+      },
+      "pool": {
+        "version": 1,
+        "total": {
+          "cinder": 30,
+          "brook": 30,
+          "thorn": 30,
+          "lumen": 30,
+          "rivet": 30,
+          "flare": 24,
+          "reef": 24,
+          "moss": 24,
+          "nova": 24,
+          "anvil": 18,
+          "pyre": 18,
+          "rill": 18,
+          "briar": 18,
+          "vesper": 12,
+          "coil": 12,
+          "grove": 12,
+          "solara": 9,
+          "abyss": 9
+        },
+        "available": {
+          "cinder": 26,
+          "brook": 30,
+          "thorn": 30,
+          "lumen": 30,
+          "rivet": 21,
+          "flare": 21,
+          "reef": 21,
+          "moss": 21,
+          "nova": 18,
+          "anvil": 18,
+          "pyre": 17,
+          "rill": 15,
+          "briar": 14,
+          "vesper": 12,
+          "coil": 10,
+          "grove": 8,
+          "solara": 9,
+          "abyss": 8
+        }
+      }
+    },
+    {
+      "seed": 25,
+      "rounds": 13,
+      "steps": 45,
+      "simulatedMs": 299000,
+      "matchDurationMs": 889045,
+      "placements": [
+        {
+          "difficulty": "easy",
+          "rank": 1
+        },
+        {
+          "difficulty": "normal",
+          "rank": 3
+        },
+        {
+          "difficulty": "hard",
+          "rank": 2
+        },
+        {
+          "difficulty": "hard",
+          "rank": 4
+        }
+      ],
+      "purchases": {
+        "rivet": 15,
+        "lumen": 11,
+        "cinder": 17,
+        "thorn": 15,
+        "brook": 15,
+        "nova": 14,
+        "reef": 11,
+        "flare": 15,
+        "moss": 11,
+        "anvil": 8,
+        "pyre": 9,
+        "briar": 5,
+        "rill": 9,
+        "vesper": 1,
+        "grove": 1
+      },
+      "itemSelections": {
+        "ironleaf": 2,
+        "heartglass": 3,
+        "prismfang": 3,
+        "mistcloak": 3,
+        "stormpin": 2,
+        "bloodopal": 2,
+        "dewstone": 1,
+        "moonwell": 2,
+        "thornseal": 1,
+        "sunshard": 1
+      },
+      "augmentSelections": {
+        "artisan": 2,
+        "resolve": 1,
+        "outnumbered": 3,
+        "rookies": 1,
+        "bastion": 2,
+        "spring": 1,
+        "stipend": 2
+      },
+      "synergyUsage": {
+        "Warden": 17,
+        "Emberkin": 13,
+        "Tideborn": 4,
+        "Ironveil": 4,
+        "Striker": 8,
+        "Astral": 5,
+        "Arcanist": 5,
+        "Ranger": 3
+      },
+      "unitRounds": {
+        "cinder": {
+          "played": 33,
+          "won": 17
+        },
+        "rivet": {
+          "played": 16,
+          "won": 6
+        },
+        "nova": {
+          "played": 24,
+          "won": 13
+        },
+        "reef": {
+          "played": 18,
+          "won": 10
+        },
+        "flare": {
+          "played": 16,
+          "won": 5
+        },
+        "brook": {
+          "played": 9,
+          "won": 4
+        },
+        "thorn": {
+          "played": 20,
+          "won": 11
+        },
+        "anvil": {
+          "played": 12,
+          "won": 5
+        },
+        "pyre": {
+          "played": 8,
+          "won": 5
+        },
+        "lumen": {
+          "played": 5,
+          "won": 2
+        },
+        "moss": {
+          "played": 2,
+          "won": 0
+        },
+        "rill": {
+          "played": 5,
+          "won": 2
+        },
+        "briar": {
+          "played": 3,
+          "won": 3
+        }
+      },
+      "pool": {
+        "version": 1,
+        "total": {
+          "cinder": 30,
+          "brook": 30,
+          "thorn": 30,
+          "lumen": 30,
+          "rivet": 30,
+          "flare": 24,
+          "reef": 24,
+          "moss": 24,
+          "nova": 24,
+          "anvil": 18,
+          "pyre": 18,
+          "rill": 18,
+          "briar": 18,
+          "vesper": 12,
+          "coil": 12,
+          "grove": 12,
+          "solara": 9,
+          "abyss": 9
+        },
+        "available": {
+          "cinder": 27,
+          "brook": 27,
+          "thorn": 26,
+          "lumen": 29,
+          "rivet": 29,
+          "flare": 23,
+          "reef": 21,
+          "moss": 23,
+          "nova": 21,
+          "anvil": 15,
+          "pyre": 14,
+          "rill": 15,
+          "briar": 15,
+          "vesper": 11,
+          "coil": 12,
+          "grove": 12,
+          "solara": 9,
+          "abyss": 9
+        }
+      }
+    },
+    {
+      "seed": 26,
+      "rounds": 12,
+      "steps": 42,
+      "simulatedMs": 236000,
+      "matchDurationMs": 791042,
+      "placements": [
+        {
+          "difficulty": "easy",
+          "rank": 2
+        },
+        {
+          "difficulty": "normal",
+          "rank": 4
+        },
+        {
+          "difficulty": "hard",
+          "rank": 1
+        },
+        {
+          "difficulty": "hard",
+          "rank": 3
+        }
+      ],
+      "purchases": {
+        "moss": 11,
+        "nova": 13,
+        "lumen": 17,
+        "cinder": 13,
+        "flare": 14,
+        "brook": 14,
+        "rivet": 20,
+        "thorn": 17,
+        "reef": 10,
+        "pyre": 5,
+        "rill": 3,
+        "anvil": 5,
+        "briar": 3,
+        "grove": 3,
+        "vesper": 3
+      },
+      "itemSelections": {
+        "dewstone": 5,
+        "bloodopal": 1,
+        "windcoil": 3,
+        "heartglass": 3,
+        "prismfang": 2,
+        "mistcloak": 2,
+        "ironleaf": 1,
+        "sunshard": 1
+      },
+      "augmentSelections": {
+        "artisan": 2,
+        "discovery": 1,
+        "lookout": 1,
+        "spring": 1,
+        "bargain": 2,
+        "embers": 1,
+        "resolve": 1,
+        "outnumbered": 2
+      },
+      "synergyUsage": {
+        "Emberkin": 14,
+        "Warden": 14,
+        "Ranger": 5,
+        "Striker": 7,
+        "Tideborn": 3,
+        "Ironveil": 3,
+        "Verdant": 2,
+        "Weaver": 1
+      },
+      "unitRounds": {
+        "flare": {
+          "played": 20,
+          "won": 9
+        },
+        "cinder": {
+          "played": 20,
+          "won": 6
+        },
+        "brook": {
+          "played": 4,
+          "won": 4
+        },
+        "rivet": {
+          "played": 26,
+          "won": 16
+        },
+        "thorn": {
+          "played": 12,
+          "won": 2
+        },
+        "moss": {
+          "played": 15,
+          "won": 8
+        },
+        "reef": {
+          "played": 16,
+          "won": 11
+        },
+        "nova": {
+          "played": 1,
+          "won": 0
+        },
+        "lumen": {
+          "played": 9,
+          "won": 7
+        },
+        "pyre": {
+          "played": 7,
+          "won": 3
+        },
+        "anvil": {
+          "played": 4,
+          "won": 4
+        },
+        "briar": {
+          "played": 1,
+          "won": 0
+        },
+        "grove": {
+          "played": 1,
+          "won": 1
+        },
+        "vesper": {
+          "played": 1,
+          "won": 1
+        }
+      },
+      "pool": {
+        "version": 1,
+        "total": {
+          "cinder": 30,
+          "brook": 30,
+          "thorn": 30,
+          "lumen": 30,
+          "rivet": 30,
+          "flare": 24,
+          "reef": 24,
+          "moss": 24,
+          "nova": 24,
+          "anvil": 18,
+          "pyre": 18,
+          "rill": 18,
+          "briar": 18,
+          "vesper": 12,
+          "coil": 12,
+          "grove": 12,
+          "solara": 9,
+          "abyss": 9
+        },
+        "available": {
+          "cinder": 30,
+          "brook": 27,
+          "thorn": 29,
+          "lumen": 27,
+          "rivet": 23,
+          "flare": 21,
+          "reef": 20,
+          "moss": 21,
+          "nova": 24,
+          "anvil": 15,
+          "pyre": 18,
+          "rill": 16,
+          "briar": 18,
+          "vesper": 9,
+          "coil": 12,
+          "grove": 9,
+          "solara": 9,
+          "abyss": 9
+        }
+      }
+    },
+    {
+      "seed": 27,
+      "rounds": 11,
+      "steps": 39,
+      "simulatedMs": 317250,
+      "matchDurationMs": 837289,
+      "placements": [
+        {
+          "difficulty": "easy",
+          "rank": 3
+        },
+        {
+          "difficulty": "normal",
+          "rank": 2
+        },
+        {
+          "difficulty": "hard",
+          "rank": 4
+        },
+        {
+          "difficulty": "hard",
+          "rank": 1
+        }
+      ],
+      "purchases": {
+        "flare": 13,
+        "cinder": 18,
+        "thorn": 19,
+        "brook": 15,
+        "rivet": 11,
+        "reef": 13,
+        "lumen": 19,
+        "moss": 8,
+        "pyre": 5,
+        "briar": 9,
+        "anvil": 6,
+        "nova": 8,
+        "rill": 4,
+        "coil": 1
+      },
+      "itemSelections": {
+        "moonwell": 3,
+        "ironleaf": 3,
+        "heartglass": 4,
+        "sunshard": 2,
+        "windcoil": 2,
+        "bloodopal": 1,
+        "mistcloak": 1,
+        "prismfang": 1,
+        "stormpin": 1,
+        "dewstone": 1
+      },
+      "augmentSelections": {
+        "resolve": 1,
+        "stipend": 2,
+        "tempo": 2,
+        "bargain": 1,
+        "outnumbered": 2,
+        "bastion": 2,
+        "artisan": 1
+      },
+      "synergyUsage": {
+        "Warden": 10,
+        "Emberkin": 11,
+        "Striker": 12,
+        "Ranger": 8,
+        "Verdant": 4,
+        "Ironveil": 4,
+        "Astral": 2,
+        "Arcanist": 1
+      },
+      "unitRounds": {
+        "thorn": {
+          "played": 32,
+          "won": 13
+        },
+        "cinder": {
+          "played": 28,
+          "won": 6
+        },
+        "rivet": {
+          "played": 19,
+          "won": 14
+        },
+        "reef": {
+          "played": 11,
+          "won": 6
+        },
+        "flare": {
+          "played": 9,
+          "won": 1
+        },
+        "lumen": {
+          "played": 15,
+          "won": 12
+        },
+        "brook": {
+          "played": 8,
+          "won": 2
+        },
+        "pyre": {
+          "played": 4,
+          "won": 1
+        },
+        "anvil": {
+          "played": 8,
+          "won": 3
+        },
+        "briar": {
+          "played": 6,
+          "won": 2
+        },
+        "rill": {
+          "played": 2,
+          "won": 1
+        },
+        "coil": {
+          "played": 2,
+          "won": 2
+        },
+        "nova": {
+          "played": 2,
+          "won": 2
+        }
+      },
+      "pool": {
+        "version": 1,
+        "total": {
+          "cinder": 30,
+          "brook": 30,
+          "thorn": 30,
+          "lumen": 30,
+          "rivet": 30,
+          "flare": 24,
+          "reef": 24,
+          "moss": 24,
+          "nova": 24,
+          "anvil": 18,
+          "pyre": 18,
+          "rill": 18,
+          "briar": 18,
+          "vesper": 12,
+          "coil": 12,
+          "grove": 12,
+          "solara": 9,
+          "abyss": 9
+        },
+        "available": {
+          "cinder": 30,
+          "brook": 30,
+          "thorn": 26,
+          "lumen": 20,
+          "rivet": 27,
+          "flare": 22,
+          "reef": 21,
+          "moss": 23,
+          "nova": 20,
+          "anvil": 17,
+          "pyre": 17,
+          "rill": 17,
+          "briar": 17,
+          "vesper": 12,
+          "coil": 11,
+          "grove": 12,
+          "solara": 9,
+          "abyss": 9
+        }
+      }
+    },
+    {
+      "seed": 28,
+      "rounds": 13,
+      "steps": 45,
+      "simulatedMs": 264750,
+      "matchDurationMs": 854795,
+      "placements": [
+        {
+          "difficulty": "easy",
+          "rank": 2
+        },
+        {
+          "difficulty": "normal",
+          "rank": 4
+        },
+        {
+          "difficulty": "hard",
+          "rank": 1
+        },
+        {
+          "difficulty": "hard",
+          "rank": 3
+        }
+      ],
+      "purchases": {
+        "reef": 16,
+        "lumen": 19,
+        "brook": 17,
+        "cinder": 14,
+        "nova": 12,
+        "flare": 13,
+        "rivet": 17,
+        "thorn": 17,
+        "rill": 7,
+        "briar": 6,
+        "moss": 8,
+        "pyre": 7,
+        "anvil": 5,
+        "coil": 1,
+        "grove": 1
+      },
+      "itemSelections": {
+        "heartglass": 2,
+        "moonwell": 2,
+        "bloodopal": 3,
+        "dewstone": 2,
+        "mistcloak": 4,
+        "stormpin": 2,
+        "dawnshell": 3,
+        "windcoil": 1
+      },
+      "augmentSelections": {
+        "tempo": 1,
+        "outnumbered": 1,
+        "stipend": 2,
+        "bastion": 1,
+        "spring": 2,
+        "bargain": 1,
+        "artisan": 4
+      },
+      "synergyUsage": {
+        "Warden": 9,
+        "Ranger": 13,
+        "Emberkin": 9,
+        "Tideborn": 1,
+        "Verdant": 3,
+        "Striker": 5,
+        "Ironveil": 4
+      },
+      "unitRounds": {
+        "flare": {
+          "played": 22,
+          "won": 7
+        },
+        "reef": {
+          "played": 23,
+          "won": 14
+        },
+        "nova": {
+          "played": 9,
+          "won": 3
+        },
+        "rivet": {
+          "played": 25,
+          "won": 13
+        },
+        "cinder": {
+          "played": 20,
+          "won": 11
+        },
+        "lumen": {
+          "played": 25,
+          "won": 14
+        },
+        "brook": {
+          "played": 8,
+          "won": 3
+        },
+        "thorn": {
+          "played": 14,
+          "won": 7
+        },
+        "rill": {
+          "played": 6,
+          "won": 1
+        },
+        "briar": {
+          "played": 6,
+          "won": 2
+        },
+        "moss": {
+          "played": 8,
+          "won": 4
+        },
+        "anvil": {
+          "played": 4,
+          "won": 1
+        },
+        "pyre": {
+          "played": 1,
+          "won": 0
+        }
+      },
+      "pool": {
+        "version": 1,
+        "total": {
+          "cinder": 30,
+          "brook": 30,
+          "thorn": 30,
+          "lumen": 30,
+          "rivet": 30,
+          "flare": 24,
+          "reef": 24,
+          "moss": 24,
+          "nova": 24,
+          "anvil": 18,
+          "pyre": 18,
+          "rill": 18,
+          "briar": 18,
+          "vesper": 12,
+          "coil": 12,
+          "grove": 12,
+          "solara": 9,
+          "abyss": 9
+        },
+        "available": {
+          "cinder": 29,
+          "brook": 24,
+          "thorn": 27,
+          "lumen": 27,
+          "rivet": 27,
+          "flare": 20,
+          "reef": 21,
+          "moss": 20,
+          "nova": 23,
+          "anvil": 15,
+          "pyre": 16,
+          "rill": 16,
+          "briar": 17,
+          "vesper": 12,
+          "coil": 12,
+          "grove": 12,
+          "solara": 9,
+          "abyss": 9
+        }
+      }
+    },
+    {
+      "seed": 29,
+      "rounds": 13,
+      "steps": 45,
+      "simulatedMs": 286250,
+      "matchDurationMs": 876295,
+      "placements": [
+        {
+          "difficulty": "easy",
+          "rank": 1
+        },
+        {
+          "difficulty": "normal",
+          "rank": 3
+        },
+        {
+          "difficulty": "hard",
+          "rank": 2
+        },
+        {
+          "difficulty": "hard",
+          "rank": 4
+        }
+      ],
+      "purchases": {
+        "cinder": 16,
+        "brook": 18,
+        "reef": 13,
+        "lumen": 16,
+        "nova": 10,
+        "moss": 15,
+        "thorn": 15,
+        "rivet": 13,
+        "rill": 3,
+        "briar": 5,
+        "pyre": 5,
+        "flare": 8,
+        "anvil": 7,
+        "coil": 2,
+        "grove": 1,
+        "abyss": 1
+      },
+      "itemSelections": {
+        "heartglass": 2,
+        "dawnshell": 3,
+        "mistcloak": 3,
+        "prismfang": 4,
+        "thornseal": 1,
+        "ironleaf": 1,
+        "stormpin": 1,
+        "moonwell": 1,
+        "windcoil": 1,
+        "sunshard": 1
+      },
+      "augmentSelections": {
+        "spring": 2,
+        "lookout": 2,
+        "rookies": 1,
+        "bargain": 2,
+        "artisan": 1,
+        "bastion": 1,
+        "resolve": 2
+      },
+      "synergyUsage": {
+        "Weaver": 6,
+        "Tideborn": 3,
+        "Warden": 13,
+        "Verdant": 7,
+        "Emberkin": 9,
+        "Ironveil": 2,
+        "Ranger": 4,
+        "Striker": 3
+      },
+      "unitRounds": {
+        "reef": {
+          "played": 20,
+          "won": 12
+        },
+        "cinder": {
+          "played": 32,
+          "won": 19
+        },
+        "brook": {
+          "played": 17,
+          "won": 9
+        },
+        "moss": {
+          "played": 17,
+          "won": 3
+        },
+        "rivet": {
+          "played": 20,
+          "won": 11
+        },
+        "rill": {
+          "played": 1,
+          "won": 0
+        },
+        "briar": {
+          "played": 1,
+          "won": 1
+        },
+        "thorn": {
+          "played": 13,
+          "won": 4
+        },
+        "lumen": {
+          "played": 13,
+          "won": 6
+        },
+        "nova": {
+          "played": 11,
+          "won": 8
+        },
+        "flare": {
+          "played": 11,
+          "won": 5
+        },
+        "anvil": {
+          "played": 3,
+          "won": 3
+        },
+        "pyre": {
+          "played": 2,
+          "won": 0
+        }
+      },
+      "pool": {
+        "version": 1,
+        "total": {
+          "cinder": 30,
+          "brook": 30,
+          "thorn": 30,
+          "lumen": 30,
+          "rivet": 30,
+          "flare": 24,
+          "reef": 24,
+          "moss": 24,
+          "nova": 24,
+          "anvil": 18,
+          "pyre": 18,
+          "rill": 18,
+          "briar": 18,
+          "vesper": 12,
+          "coil": 12,
+          "grove": 12,
+          "solara": 9,
+          "abyss": 9
+        },
+        "available": {
+          "cinder": 27,
+          "brook": 24,
+          "thorn": 26,
+          "lumen": 30,
+          "rivet": 27,
+          "flare": 21,
+          "reef": 18,
+          "moss": 24,
+          "nova": 21,
+          "anvil": 14,
+          "pyre": 17,
+          "rill": 16,
+          "briar": 17,
+          "vesper": 12,
+          "coil": 11,
+          "grove": 12,
+          "solara": 9,
+          "abyss": 9
+        }
+      }
+    },
+    {
+      "seed": 30,
+      "rounds": 12,
+      "steps": 42,
+      "simulatedMs": 277750,
+      "matchDurationMs": 832792,
+      "placements": [
+        {
+          "difficulty": "easy",
+          "rank": 2
+        },
+        {
+          "difficulty": "normal",
+          "rank": 3
+        },
+        {
+          "difficulty": "hard",
+          "rank": 1
+        },
+        {
+          "difficulty": "hard",
+          "rank": 4
+        }
+      ],
+      "purchases": {
+        "nova": 14,
+        "reef": 13,
+        "cinder": 17,
+        "thorn": 20,
+        "lumen": 18,
+        "brook": 26,
+        "moss": 15,
+        "rivet": 18,
+        "rill": 6,
+        "briar": 6,
+        "flare": 11,
+        "pyre": 3,
+        "anvil": 3
+      },
+      "itemSelections": {
+        "sunshard": 1,
+        "mistcloak": 1,
+        "dewstone": 1,
+        "dawnshell": 2,
+        "moonwell": 1,
+        "heartglass": 3,
+        "bloodopal": 2,
+        "stormpin": 2,
+        "ironleaf": 5,
+        "prismfang": 1,
+        "thornseal": 1
+      },
+      "augmentSelections": {
+        "bargain": 1,
+        "resolve": 3,
+        "tempo": 1,
+        "discovery": 1,
+        "lookout": 1,
+        "outnumbered": 1,
+        "rookies": 1,
+        "artisan": 1,
+        "spring": 2
+      },
+      "synergyUsage": {
+        "Warden": 15,
+        "Tideborn": 5,
+        "Weaver": 1,
+        "Emberkin": 3,
+        "Verdant": 4,
+        "Ranger": 1
+      },
+      "unitRounds": {
+        "reef": {
+          "played": 18,
+          "won": 6
+        },
+        "moss": {
+          "played": 16,
+          "won": 6
+        },
+        "rivet": {
+          "played": 18,
+          "won": 13
+        },
+        "cinder": {
+          "played": 30,
+          "won": 17
+        },
+        "brook": {
+          "played": 9,
+          "won": 5
+        },
+        "nova": {
+          "played": 12,
+          "won": 2
+        },
+        "rill": {
+          "played": 9,
+          "won": 8
+        },
+        "thorn": {
+          "played": 11,
+          "won": 4
+        },
+        "lumen": {
+          "played": 5,
+          "won": 5
+        },
+        "flare": {
+          "played": 7,
+          "won": 1
+        },
+        "briar": {
+          "played": 2,
+          "won": 2
+        }
+      },
+      "pool": {
+        "version": 1,
+        "total": {
+          "cinder": 30,
+          "brook": 30,
+          "thorn": 30,
+          "lumen": 30,
+          "rivet": 30,
+          "flare": 24,
+          "reef": 24,
+          "moss": 24,
+          "nova": 24,
+          "anvil": 18,
+          "pyre": 18,
+          "rill": 18,
+          "briar": 18,
+          "vesper": 12,
+          "coil": 12,
+          "grove": 12,
+          "solara": 9,
+          "abyss": 9
+        },
+        "available": {
+          "cinder": 27,
+          "brook": 27,
+          "thorn": 30,
+          "lumen": 26,
+          "rivet": 22,
+          "flare": 23,
+          "reef": 22,
+          "moss": 24,
+          "nova": 23,
+          "anvil": 17,
+          "pyre": 16,
+          "rill": 15,
+          "briar": 14,
+          "vesper": 11,
+          "coil": 12,
+          "grove": 12,
+          "solara": 9,
+          "abyss": 9
+        }
+      }
+    }
+  ],
+  "units": {
+    "reef": {
+      "picks": 124,
+      "played": 180,
+      "wins": 99,
+      "winRate": 0.55,
+      "pickRate": 0.07883026064844247
+    },
+    "thorn": {
+      "picks": 173,
+      "played": 180,
+      "wins": 76,
+      "winRate": 0.4222222222222222,
+      "pickRate": 0.10998092816274635
+    },
+    "brook": {
+      "picks": 184,
+      "played": 107,
+      "wins": 52,
+      "winRate": 0.48598130841121495,
+      "pickRate": 0.11697393515575334
+    },
+    "rivet": {
+      "picks": 164,
+      "played": 247,
+      "wins": 143,
+      "winRate": 0.5789473684210527,
+      "pickRate": 0.10425937698664971
+    },
+    "flare": {
+      "picks": 120,
+      "played": 145,
+      "wins": 49,
+      "winRate": 0.33793103448275863,
+      "pickRate": 0.07628734901462174
+    },
+    "nova": {
+      "picks": 120,
+      "played": 117,
+      "wins": 57,
+      "winRate": 0.48717948717948717,
+      "pickRate": 0.07628734901462174
+    },
+    "lumen": {
+      "picks": 158,
+      "played": 116,
+      "wins": 66,
+      "winRate": 0.5689655172413793,
+      "pickRate": 0.10044500953591863
+    },
+    "cinder": {
+      "picks": 153,
+      "played": 266,
+      "wins": 132,
+      "winRate": 0.49624060150375937,
+      "pickRate": 0.09726636999364272
+    },
+    "pyre": {
+      "picks": 61,
+      "played": 44,
+      "wins": 16,
+      "winRate": 0.36363636363636365,
+      "pickRate": 0.03877940241576605
+    },
+    "moss": {
+      "picks": 115,
+      "played": 128,
+      "wins": 60,
+      "winRate": 0.46875,
+      "pickRate": 0.07310870947234584
+    },
+    "briar": {
+      "picks": 55,
+      "played": 31,
+      "wins": 17,
+      "winRate": 0.5483870967741935,
+      "pickRate": 0.03496503496503497
+    },
+    "rill": {
+      "picks": 56,
+      "played": 35,
+      "wins": 17,
+      "winRate": 0.4857142857142857,
+      "pickRate": 0.03560076287349015
+    },
+    "anvil": {
+      "picks": 55,
+      "played": 37,
+      "wins": 17,
+      "winRate": 0.4594594594594595,
+      "pickRate": 0.03496503496503497
+    },
+    "coil": {
+      "picks": 12,
+      "played": 2,
+      "wins": 2,
+      "winRate": 1,
+      "pickRate": 0.007628734901462174
+    },
+    "vesper": {
+      "picks": 8,
+      "played": 1,
+      "wins": 1,
+      "winRate": 1,
+      "pickRate": 0.0050858232676414495
+    },
+    "grove": {
+      "picks": 13,
+      "played": 6,
+      "wins": 4,
+      "winRate": 0.6666666666666666,
+      "pickRate": 0.008264462809917356
+    },
+    "abyss": {
+      "picks": 2,
+      "played": 0,
+      "wins": 0,
+      "winRate": 0,
+      "pickRate": 0.0012714558169103624
+    }
+  },
+  "itemSelections": {
+    "dewstone": 14,
+    "heartglass": 29,
+    "sunshard": 15,
+    "bloodopal": 15,
+    "stormpin": 12,
+    "ironleaf": 23,
+    "moonwell": 17,
+    "mistcloak": 17,
+    "thornseal": 9,
+    "dawnshell": 14,
+    "prismfang": 13,
+    "windcoil": 13
+  },
+  "augmentSelections": {
+    "resolve": 15,
+    "bastion": 9,
+    "outnumbered": 15,
+    "spring": 14,
+    "tempo": 11,
+    "artisan": 14,
+    "embers": 5,
+    "rookies": 4,
+    "discovery": 6,
+    "stipend": 8,
+    "lookout": 6,
+    "bargain": 8
+  },
+  "synergyUsage": {
+    "Striker": 45,
+    "Warden": 157,
+    "Emberkin": 94,
+    "Tideborn": 26,
+    "Arcanist": 17,
+    "Verdant": 51,
+    "Ranger": 55,
+    "Astral": 16,
+    "Weaver": 17,
+    "Ironveil": 20
+  },
+  "averagePlacement": {
+    "easy": 2.1,
+    "normal": 2.6,
+    "hard": 2.65
+  },
+  "averageSimulatedMs": 291850
+}

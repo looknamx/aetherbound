@@ -1,0 +1,154 @@
+.strategy-panel {
+  background: #10242b;
+  border: 1px solid #34524e;
+  border-radius: 10px;
+  padding: 14px;
+  margin: 12px 0;
+  min-width: 0;
+}
+.strategy-panel summary {
+  cursor: pointer;
+  color: #eed5a8;
+}
+.strategy-panel p,
+.strategy-panel small {
+  font-size: 12px;
+  line-height: 1.6;
+}
+.strategy-panel small,
+.practice-entry small {
+  display: block;
+}
+.choice-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(200px, 100%), 1fr));
+  gap: 12px;
+}
+.choice-grid button {
+  text-align: left;
+  padding: 16px;
+  background: #1b3539;
+  border: 1px solid #88b49b;
+  border-radius: 8px;
+  color: #eceddf;
+}
+.choice-grid button:focus-visible,
+.scouting button:focus-visible {
+  outline: 2px solid #e8c684;
+  outline-offset: 2px;
+}
+.scouting nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 10px 0;
+}
+.scouting nav button {
+  padding: 8px;
+  border: 1px solid #557c70;
+  background: #1b3539;
+  color: #eceddf;
+}
+.scouting nav button[aria-pressed="true"] {
+  border-color: #e8c684;
+}
+.scout-grid {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  aspect-ratio: 1;
+  gap: 3px;
+  padding: 12px;
+  background: #10242b;
+}
+.scout-grid > div {
+  min-width: 0;
+  background: #243d41;
+  position: relative;
+}
+.scout-grid .scout-enemy {
+  background: #17262d;
+}
+.scout-grid .unit-card {
+  position: absolute;
+  inset: 0;
+}
+.scout-grid .card-face {
+  height: 100%;
+  aspect-ratio: 1;
+}
+.synergy-hints {
+  padding: 6px 2px;
+  font-size: 11px;
+  line-height: 1.5;
+}
+.synergy-hints p {
+  margin: 3px 0;
+}
+.synergy-activate,
+.synergy-upgrade {
+  color: #bcebc8;
+}
+.synergy-progress {
+  color: #e8d3a8;
+}
+.round-insights {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(280px, 100%), 1fr));
+  gap: 12px;
+}
+.round-insights dl > div {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  font-size: 12px;
+}
+.round-insights dd {
+  margin: 0;
+  white-space: nowrap;
+}
+.practice-entry {
+  margin-top: 12px;
+  display: grid;
+  gap: 8px;
+}
+.practice-entry select,
+.strategy-language select {
+  background: #193337;
+  color: #f1eadc;
+  padding: 7px;
+  margin-left: 8px;
+}
+.combat-event-log {
+  max-height: 150px;
+  overflow-y: auto;
+  font-size: 11px;
+  line-height: 1.6;
+}
+.combat-event-log p {
+  margin: 3px;
+}
+.combat-card.is-dead {
+  opacity: 0.25;
+  filter: grayscale(1);
+  transition: opacity 0.5s;
+}
+.combat-card.shield-broken {
+  outline: 2px dashed #b7cfff;
+}
+.combat-callout {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 35%;
+  z-index: 6;
+  background: #112329e8;
+  color: #ffe5b0;
+  font-size: 9px;
+  pointer-events: none;
+  overflow-wrap: anywhere;
+}
+@media (prefers-reduced-motion: reduce) {
+  .combat-card.is-dead {
+    transition: none;
+  }
+}

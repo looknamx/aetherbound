@@ -16,7 +16,7 @@ export function request(event: string, payload: unknown): Promise<Reply> {
 }
 export const sendAction = (action: Action) =>
   request("action", {
-    version: 1,
+    version: 2,
     id: Array.from(crypto.getRandomValues(new Uint8Array(16)), (b) =>
       b.toString(16).padStart(2, "0"),
     ).join(""),

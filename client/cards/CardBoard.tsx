@@ -9,6 +9,8 @@ import type { Battle, CombatFrame, Unit } from "../../shared/types";
 import { tone } from "../audio";
 import { UnitCard } from "./UnitCard";
 import { setCardDragImage } from "./CardDragPreview";
+import { EventCursor, eventLabel } from "../../shared/combatEvents";
+import { LABELS, type Locale } from "../strategy/labels";
 export const CELL = 76,
   OFFSET = 32;
 interface Props {
@@ -27,6 +29,8 @@ interface Props {
   playerId?: string;
   blockedSlots?: number[];
   dragging?: boolean;
+  locale?: Locale;
+  eventCursor?: number;
 }
 export function playbackFrame(
   battle: Battle,
@@ -46,6 +50,9 @@ export function playbackFrame(
   ];
 }
 export function CardBoard(props: Props) {
+  const cursor = useRef(new EventCursor()),
+    playbackBattle = useRef("");
+  const [eventLog, setEventLog] = useState<string[]>([]);
   const mount = useRef<HTMLDivElement>(null),
     latest = useRef(props),
     liveFrame = useRef<CombatFrame | undefined>(undefined);
@@ -58,6 +65,12 @@ export function CardBoard(props: Props) {
       liveFrame.current = undefined;
       return;
     }
+    if (playbackBattle.current !== props.battle.id) {
+      playbackBattle.current = props.battle.id;
+      cursor.current.reset(props.battle.id, props.eventCursor ?? -1);
+      liveFrame.current = undefined;
+      setEventLog([]);
+    }
     const update = () => {
       const p = latest.current;
       if (!p.battle) return;
@@ -67,8 +80,23 @@ export function CardBoard(props: Props) {
         p.deadline,
         p.speed,
       );
-      liveFrame.current = current;
-      setFrame((old) => (old === current ? old : current));
+      if (liveFrame.current?.tick === current.tick) return;
+      const fresh = cursor.current.consume(
+        p.battle.id,
+        p.battle.frames
+          .filter((f) => f.tick <= current.tick)
+          .flatMap((f) => f.events),
+      );
+      const labels = fresh
+        .map((e) => eventLabel(e, current, p.locale ?? "th"))
+        .filter((s): s is string => !!s);
+      if (labels.length) setEventLog((old) => [...old, ...labels].slice(-12));
+      const rendered = {
+        ...current,
+        events: fresh.filter((e) => e.tick === current.tick),
+      };
+      liveFrame.current = rendered;
+      setFrame(rendered);
     };
     update();
     const timer = setInterval(update, 50);
@@ -239,15 +267,28 @@ export function CardBoard(props: Props) {
             {frame.units.map((f) => {
               const position = canonicalToRelative(f, ownSide);
               const hurt = frame.events.some(
-                  (e) => e.type === "damage" && e.target === f.id,
+                  (e) =>
+                    e.type === "damage" &&
+                    (e.value ?? 0) > 0 &&
+                    e.target === f.id,
                 ),
                 cast = frame.events.some(
                   (e) => e.type === "cast" && e.source === f.id,
                 );
+              const broken = frame.events.some(
+                (e) => e.type === "shieldBreak" && e.source === f.id,
+              );
+              const callout = frame.events.find(
+                (e) =>
+                  (e.type === "cast" ||
+                    e.type === "shieldBreak" ||
+                    e.type === "death") &&
+                  e.source === f.id,
+              );
               return (
                 <button
                   key={f.id}
-                  className={`combat-card ${hurt ? "is-hit" : ""} ${cast ? "is-casting" : ""}`}
+                  className={`combat-card ${hurt ? "is-hit" : ""} ${cast ? "is-casting" : ""} ${f.hp <= 0 ? "is-dead" : ""} ${broken ? "shield-broken" : ""}`}
                   style={{
                     left: `${(position.x / BOARD.size) * 100}%`,
                     top: `${(position.y / BOARD.size) * 100}%`,
@@ -265,12 +306,27 @@ export function CardBoard(props: Props) {
                     variant="board"
                     side={f.side === ownSide ? "ally" : "enemy"}
                   />
+                  {callout && (
+                    <span className="combat-callout">
+                      {eventLabel(callout, frame, props.locale ?? "th")}
+                    </span>
+                  )}
                 </button>
               );
             })}
           </div>
         )}
       </div>
+      {props.battle && (
+        <details className="strategy-panel">
+          <summary>{LABELS[props.locale ?? "th"].log}</summary>
+          <div className="combat-event-log">
+            {eventLog.map((line, i) => (
+              <p key={i}>{line}</p>
+            ))}
+          </div>
+        </details>
+      )}
       {currentFighter && (
         <div className="modal-backdrop">
           <section

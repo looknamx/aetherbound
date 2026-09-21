@@ -1,4 +1,14 @@
+import type {
+  ChoiceKind,
+  CombatSummary,
+  Difficulty,
+  IncomeBreakdown,
+  PendingChoice,
+  PoolState,
+  ScoutingView,
+} from "./strategyTypes";
 export type Phase =
+  | "Choosing"
   | "Lobby"
   | "Preparing"
   | "Battling"
@@ -15,6 +25,12 @@ export interface Unit {
   summoned?: boolean;
 }
 export interface Player {
+  bot?: { difficulty: Difficulty; plannedRound: number };
+  pendingChoices?: Partial<Record<ChoiceKind, PendingChoice>>;
+  augments?: string[];
+  rewardOverflow?: string[];
+  latestIncome?: IncomeBreakdown;
+  latestSummary?: CombatSummary;
   id: string;
   name: string;
   connected: boolean;
@@ -58,6 +74,12 @@ export interface Fighter {
   items?: string[];
 }
 export interface CombatEvent {
+  sequence?: number;
+  kind?: string;
+  effectId?: string;
+  damageType?: "physical" | "magic" | "true";
+  position?: { x: number; y: number };
+  owner?: 0 | 1;
   absorbed?: number;
   killed?: boolean;
   tick: number;
@@ -70,7 +92,14 @@ export interface CombatEvent {
     | "heal"
     | "shield"
     | "status"
-    | "summon";
+    | "summon"
+    | "shieldDamage"
+    | "shieldBreak"
+    | "castResolved"
+    | "target"
+    | "battleEnd"
+    | "critical";
+
   source: string;
   target?: string;
   value?: number;
@@ -87,7 +116,7 @@ export interface Battle {
   a: string;
   b: string;
   ghost: boolean;
-  seed: number;
+  seed?: number;
   winner: 0 | 1 | null;
   damage: number;
   frames: CombatFrame[];
@@ -112,6 +141,9 @@ export interface AutoDeployReport {
   repaired: number;
 }
 export interface Room {
+  schemaVersion?: 2;
+  mode?: "multiplayer" | "practice";
+  pool?: PoolState;
   key: string;
   hostId: string;
   phase: Phase;
@@ -126,14 +158,17 @@ export interface Room {
   deployments?: AutoDeployReport[];
 }
 export interface Snapshot {
-  version: 1;
-  room: Room;
+  version: 2;
+  room: Omit<Room, "seed" | "pool">;
+  scouting?: ScoutingView[];
+  eventCursor?: number;
   you: string;
   serverTime: number;
   devTools: boolean;
   autoDeployPreview?: string[];
 }
 export type Action =
+  | { type: "choose"; kind: ChoiceKind; round: number; index: number }
   | { type: "ready"; ready: boolean }
   | { type: "start" }
   | { type: "buy"; index: number }
@@ -158,7 +193,7 @@ export type Action =
       value?: string;
     };
 export interface Envelope {
-  version: 1;
+  version: 2;
   id: string;
   action: Action;
 }

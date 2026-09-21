@@ -1,6 +1,14 @@
 import { z } from "zod";
 const unitId = z.string().min(1).max(80);
 export const actionSchema = z.discriminatedUnion("type", [
+  z
+    .object({
+      type: z.literal("choose"),
+      kind: z.enum(["item", "augment"]),
+      round: z.number().int().positive(),
+      index: z.number().int().min(0).max(2),
+    })
+    .strict(),
   z.object({ type: z.literal("ready"), ready: z.boolean() }).strict(),
   z.object({ type: z.literal("start") }).strict(),
   z
@@ -50,7 +58,7 @@ export const actionSchema = z.discriminatedUnion("type", [
 ]);
 export const envelopeSchema = z
   .object({
-    version: z.literal(1),
+    version: z.literal(2),
     id: z.string().min(8).max(80),
     action: actionSchema,
   })
@@ -62,5 +70,12 @@ export const enterSchema = z
       .string()
       .regex(/^[A-Z2-9]{6}$/)
       .optional(),
+  })
+  .strict();
+
+export const practiceSchema = z
+  .object({
+    name: z.string().trim().min(1).max(24),
+    difficulty: z.enum(["easy", "normal", "hard"]),
   })
   .strict();

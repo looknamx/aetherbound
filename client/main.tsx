@@ -1,3 +1,15 @@
+import {
+  PracticeEntry,
+  ScoutingPanel,
+  ChoicePanel,
+  AugmentList,
+  SynergyHint,
+  RoundInsights,
+} from "./strategy/StrategyPanels";
+import { LABELS, type Locale } from "./strategy/labels";
+import type { Difficulty } from "../shared/strategyTypes";
+import { augmentValue } from "../shared/strategyConfig";
+import { shopOdds } from "../shared/pool";
 import { LatestBattleStatsPanel } from "./cards/LatestBattleStatsPanel";
 import { isDeploymentSlot, PLACEMENT_MESSAGE } from "../shared/deploymentZone";
 import React, { useEffect, useRef, useState } from "react";
@@ -37,6 +49,7 @@ const wordmark = (
   </span>
 );
 function App() {
+  const [locale, setLocale] = useState<Locale>("th");
   const [state, setState] = useState<Snapshot>();
   const latestState = useRef<Snapshot | undefined>(undefined);
   const [connected, setConnected] = useState(false),
@@ -70,6 +83,10 @@ function App() {
   const flights = useAutoDeployFeedback(state, reduced);
   useEffect(() => {
     const onState = (s: Snapshot) => {
+      if (s.version !== 2) {
+        setError("Please reload to update the game client.");
+        return;
+      }
       latestState.current = s;
       setState(s);
     };
@@ -153,6 +170,17 @@ function App() {
       }
     }
     return reply;
+  };
+  const practice = async (difficulty: Difficulty) => {
+    setPending(true);
+    setError("");
+    const reply = await request("practice", { name, difficulty });
+    setPending(false);
+    if (reply.ok) {
+      sessionStorage.setItem("aether-token", reply.token!);
+      localStorage.setItem("aether-name", name);
+      history.replaceState({}, "", "/");
+    } else setError(reply.error!);
   };
   const enter = async (join: boolean) => {
     setPending(true);
@@ -364,6 +392,11 @@ function App() {
               >
                 Create a private room <span>↗</span>
               </button>
+              <PracticeEntry
+                locale={locale}
+                disabled={!connected || pending || !name.trim()}
+                onStart={(difficulty) => void practice(difficulty)}
+              />
               <div className="separator">
                 <span>OR JOIN YOUR FRIENDS</span>
               </div>
@@ -493,7 +526,9 @@ function App() {
               <div className={`phase ${r.phase.toLowerCase()}`}>
                 {r.phase === "Preparing"
                   ? "PREPARATION"
-                  : r.phase.toUpperCase()}{" "}
+                  : r.phase === "Choosing"
+                    ? LABELS[locale].choices
+                    : r.phase.toUpperCase()}{" "}
                 <b>
                   {r.deadline
                     ? `${Math.max(0, Math.ceil((r.deadline - now - clockOffset) / 1000))}s`
@@ -585,34 +620,45 @@ function App() {
                   <i className="live-dot" />{" "}
                   {battle
                     ? `${r.players.find((x) => x.id === battle.a)?.name} vs ${r.players.find((x) => x.id === battle.b)?.name}${battle.ghost ? " · ECHO" : ""}`
-                    : "YOUR FORMATION"}
+                    : locale === "th"
+                      ? "กระดานและการส่องคู่แข่ง"
+                      : "BOARD & SCOUTING"}
                 </span>
                 <span>
                   {p.units.filter((u) => u.slot < 36).length} / {p.level}{" "}
                   DEPLOYED
                 </span>
               </div>
-              <Board
-                units={p.units}
-                battle={battle}
-                deadline={r.deadline}
-                serverOffset={clockOffset}
-                selected={selected}
-                onSelect={select}
-                onSlot={(slot) => {
-                  const target = p.units.find((u) => u.slot === slot);
-                  if (selectedItem !== undefined && target) select(target.id);
-                  else drop(slot);
-                }}
-                onDrop={drop}
-                disabled={disabled}
-                reduced={reduced}
-                speed={speed}
-                sound={sound}
-                playerId={p.id}
-                blockedSlots={p.blockedSlots}
-                dragging={!!dragView}
-              />
+              <ScoutingPanel
+                views={state.scouting ?? []}
+                ownSeat={r.players.findIndex((x) => x.id === p.id)}
+                phase={r.phase}
+                locale={locale}
+              >
+                <Board
+                  units={p.units}
+                  battle={battle}
+                  deadline={r.deadline}
+                  serverOffset={clockOffset}
+                  selected={selected}
+                  onSelect={select}
+                  onSlot={(slot) => {
+                    const target = p.units.find((u) => u.slot === slot);
+                    if (selectedItem !== undefined && target) select(target.id);
+                    else drop(slot);
+                  }}
+                  onDrop={drop}
+                  disabled={disabled}
+                  reduced={reduced}
+                  speed={speed}
+                  sound={sound}
+                  playerId={p.id}
+                  blockedSlots={p.blockedSlots}
+                  dragging={!!dragView}
+                  locale={locale}
+                  eventCursor={state.eventCursor}
+                />
+              </ScoutingPanel>
               {r.deployments
                 ?.filter(
                   (d) =>
@@ -842,6 +888,26 @@ function App() {
               </div>
             </aside>
           </div>
+          <label className="strategy-language">
+            {LABELS[locale].language}
+            <select
+              value={locale}
+              onChange={(e) => setLocale(e.target.value as Locale)}
+            >
+              <option value="th">Thai</option>
+              <option value="en">English</option>
+            </select>
+          </label>
+          {r.phase === "Choosing" && (
+            <ChoicePanel
+              player={p}
+              locale={locale}
+              disabled={pending || !connected || p.hp <= 0}
+              onAction={(action) => void act(action)}
+            />
+          )}
+          <AugmentList ids={p.augments ?? []} locale={locale} />
+          <RoundInsights player={p} locale={locale} />
           <LatestBattleStatsPanel
             snapshot={p.latestBattleStats}
             battling={r.phase === "Battling"}
@@ -857,9 +923,9 @@ function App() {
                 className="shop-odds"
                 title="Rarity odds at your current level"
               >
-                {ODDS[p.level - 1].map((n, i) => (
+                {shopOdds(p).map((n, i) => (
                   <span key={i} style={{ color: COLORS[i] }}>
-                    {n}%
+                    {Math.round(n)}%
                   </span>
                 ))}
               </div>
@@ -872,13 +938,20 @@ function App() {
                   {p.locked ? "◆ Locked" : "◇ Lock shop"}
                 </button>
                 <button
-                  disabled={disabled || p.gold < 2}
+                  disabled={
+                    disabled ||
+                    p.gold < Math.max(1, 2 - augmentValue(p.augments, "reroll"))
+                  }
                   onClick={() => void act({ type: "reroll" })}
                 >
-                  ↻ Refresh <span>2 ◉</span>
+                  ↻ Refresh{" "}
+                  <span>
+                    {Math.max(1, 2 - augmentValue(p.augments, "reroll"))} ◉
+                  </span>
                 </button>
               </div>
             </div>
+            <p className="hint">{LABELS[locale].pool}</p>
             <div className="shop-cards">
               {p.shop.map((id, i) =>
                 id ? (
@@ -913,6 +986,7 @@ function App() {
                     >
                       Details & ability ↗
                     </button>
+                    <SynergyHint player={p} defId={id} locale={locale} />
                   </div>
                 ) : (
                   <div key={i} className="sold-card">

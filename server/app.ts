@@ -1,10 +1,15 @@
+import { roomView, scoutingView } from "./views";
 import express from "express";
 import { createServer } from "node:http";
 import { resolve } from "node:path";
 import { Server } from "socket.io";
 import { GameEngine, type Session } from "./engine";
 import { archiveMatch } from "./persistence";
-import { enterSchema, envelopeSchema } from "../shared/protocol";
+import {
+  enterSchema,
+  envelopeSchema,
+  practiceSchema,
+} from "../shared/protocol";
 import type { Reply, Snapshot } from "../shared/types";
 import { previewAutoDeploy, repairFormation } from "../shared/autoDeploy";
 import { PlacementError } from "../shared/deploymentZone";
@@ -75,17 +80,25 @@ export function createGameServer(
         continue;
       }
       const own = room.players.find((p) => p.id === s.playerId)!;
-      const safe = {
-        ...room,
-        players: room.players.map((p) =>
-          p.id === s.playerId ? p : { ...p, shop: [], inventory: [] },
-        ),
-        battles: room.battles.filter(
-          (b) => b.a === own.id || b.b === own.id || own.hp === 0,
-        ),
-      };
+      const safe = roomView(room, s.playerId);
       socket.emit("state", {
-        version: 1,
+        version: 2,
+        scouting: room.players.map(scoutingView),
+        eventCursor: Math.max(
+          -1,
+          ...safe.battles
+            .slice(0, 1)
+            .flatMap((b) =>
+              b.frames
+                .filter(
+                  (f) =>
+                    f.tick * 250 <=
+                    (Date.now() - (b.startedAt ?? Date.now())) *
+                      (b.playbackRate ?? 1),
+                )
+                .flatMap((f) => f.events.map((e) => e.sequence ?? -1)),
+            ),
+        ),
         room: safe,
         you: s.playerId,
         serverTime: Date.now(),
@@ -122,6 +135,16 @@ export function createGameServer(
           });
       }
     };
+    socket.on("practice", (payload, cb) =>
+      handle(cb, () => {
+        allow("practice:" + socket.handshake.address, 10, 60000);
+        if (bound.has(socket.id)) throw Error("Already in a room.");
+        const data = practiceSchema.parse(payload);
+        const s = engine.practice(data.name, data.difficulty);
+        bind(socket, s);
+        return { ok: true, token: s.token, playerId: s.playerId };
+      }),
+    );
     socket.on("enter", (payload, cb) =>
       handle(cb, () => {
         allow(`enter:${socket.handshake.address}`, 20, 60000);
@@ -179,7 +202,7 @@ export function createGameServer(
       if (Date.now() - rate.at > 60000) rates.delete(key);
   }, 100);
   app.get("/api/health", (_req, res) =>
-    res.json({ ok: true, protocol: 1, rooms: engine.rooms.size }),
+    res.json({ ok: true, protocol: 2, rooms: engine.rooms.size }),
   );
   app.use(express.static(resolve("dist")));
   app.get("*", (_req, res) => res.sendFile(resolve("dist/index.html")));

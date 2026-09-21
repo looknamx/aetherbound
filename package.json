@@ -10,6 +10,7 @@
     "build": "tsc --noEmit && vite build",
     "start": "tsx server/index.ts",
     "test": "vitest run",
+    "simulate": "tsx scripts/balance.ts",
     "typecheck": "tsc --noEmit",
     "lint": "node scripts/lint.mjs",
     "test:e2e": "playwright test",

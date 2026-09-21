@@ -1,4 +1,16 @@
-# Test report — 18 September 2026
+# Test report — 21 September 2026
+
+## Latest change: seven integrated strategy systems
+
+- Baseline: 130 tests passing, no pre-existing failures. Final: **165/165 tests across 13 files passed**.
+- Type checking, focused AST lint, production build (92 modules) and headless simulation passed.
+- Ten complete bot matches (seeds 21–30), average 13 rounds. Report: `artifacts/balance/latest.json`.
+- Added authoritative scouting/privacy, practice/bots, item and augment choices, finite supply, synergy advice, structured combat feedback and income summaries. Protocol version is now 2.
+- Automated Socket.IO and isolated happy-dom tests cover reconnect, ownership/privacy, choice actions and scouting phase transitions. Seeded bot replay and pool conservation are checked.
+- No game/browser was opened; no manual/Playwright playtest, commit or push was performed. Visual layout is not browser-verified. Difficulty ordering still needs tuning: this sample's Easy average placement exceeds the more conservative profiles.
+- See [contracts, rules, bonus catalog, implementation and limitations](docs/STRATEGY_SYSTEMS.md). All reports below are historical.
+
+# Previous test report — 18 September 2026
 
 ## Latest correction: safe player-facing statistics details
 

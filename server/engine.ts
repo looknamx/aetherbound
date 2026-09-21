@@ -1,15 +1,21 @@
+import {
+  initializePool,
+  pooledShop,
+  assertPool,
+  releaseShop,
+  reserve,
+  returnUnit,
+  eliminateSupply,
+} from "../shared/pool";
+import { offerChoices, choose, drainRewards } from "../shared/choices";
+import { incomeBreakdown, combatSummary } from "../shared/roundInsights";
+import { STRATEGY, DIFFICULTY, augmentValue } from "../shared/strategyConfig";
+import { migrateRoom } from "../shared/migration";
+import { planBot } from "./bots";
+import type { Difficulty } from "../shared/strategyTypes";
 import { randomBytes, randomUUID } from "node:crypto";
 import { ITEMS, RULES, UNIT_MAP } from "../shared/content";
-import {
-  addXP,
-  buy,
-  equip,
-  income,
-  mergeUnits,
-  move,
-  rollShop,
-  sell,
-} from "../shared/economy";
+import { addXP, buy, equip, mergeUnits, move, sell } from "../shared/economy";
 import { simulate } from "../shared/combat";
 import { RNG } from "../shared/random";
 import { autoDeploy, repairFormation } from "../shared/autoDeploy";
@@ -24,7 +30,11 @@ export class GameEngine {
   rooms = new Map<string, Room>();
   sessions = new Map<string, Session>();
   speeds = new Map<string, number>();
-  constructor(public onFinish: (room: Room) => void = () => {}) {}
+  constructor(
+    public onFinish: (room: Room) => void = () => {},
+    public now: () => number = Date.now,
+    private identity: () => string = randomUUID,
+  ) {}
   create(name: string) {
     const alphabet = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
     let key: string;
@@ -34,7 +44,7 @@ export class GameEngine {
         (b) => alphabet[b % alphabet.length],
       ).join("");
     } while (this.rooms.has(key));
-    const now = Date.now();
+    const now = this.now();
     this.rooms.set(key, {
       key,
       hostId: "",
@@ -48,15 +58,20 @@ export class GameEngine {
       updatedAt: now,
       revision: 0,
     });
-    return this.join(key, name);
+    const session = this.join(key, name);
+    const room = this.rooms.get(key)!;
+    room.schemaVersion = 2;
+    room.mode = "multiplayer";
+    initializePool(room);
+    return session;
   }
   join(key: string, name: string) {
     const r = this.rooms.get(key);
-    if (!r || Date.now() - r.createdAt > RULES.roomTtlMs)
+    if (!r || this.now() - r.createdAt > RULES.roomTtlMs)
       throw Error("Room not found or expired.");
     if (r.phase !== "Lobby") throw Error("This match has already started.");
     if (r.players.length >= 4) throw Error("This room is full.");
-    const id = randomUUID(),
+    const id = this.identity(),
       token = randomBytes(32).toString("hex");
     const p: Player = {
       id,
@@ -72,6 +87,9 @@ export class GameEngine {
       units: [],
       inventory: ["sunshard"],
       streak: 0,
+      augments: [],
+      pendingChoices: {},
+      rewardOverflow: [],
     };
     r.players.push(p);
     if (!r.hostId) r.hostId = id;
@@ -82,7 +100,7 @@ export class GameEngine {
   }
   touch(r: Room) {
     r.revision++;
-    r.updatedAt = Date.now();
+    r.updatedAt = this.now();
   }
   reconnect(token: string) {
     const s = this.sessions.get(token);
@@ -91,7 +109,7 @@ export class GameEngine {
     const r = this.rooms.get(s.key)!;
     r.players.find((p) => p.id === s.playerId)!.connected = true;
     for (const p of r.players) repairFormation(p);
-    if (!r.players.some((p) => p.id === r.hostId && p.connected))
+    if (!r.players.some((p) => p.id === r.hostId && p.connected && !p.bot))
       r.hostId = s.playerId;
     this.touch(r);
     return s;
@@ -103,7 +121,7 @@ export class GameEngine {
     p.connected = false;
     if (r.phase === "Lobby") p.ready = false;
     if (r.hostId === p.id)
-      r.hostId = r.players.find((x) => x.connected)?.id ?? p.id;
+      r.hostId = r.players.find((x) => x.connected && !x.bot)?.id ?? p.id;
     this.touch(r);
   }
   rng(r: Room) {
@@ -130,6 +148,10 @@ export class GameEngine {
           "At least 2 players must be connected and everyone must be ready.",
         );
       this.prepare(r);
+    } else if (action.type === "choose") {
+      if (r.phase !== "Choosing" || p.hp <= 0 || this.now() >= r.deadline)
+        throw Error("Choice phase has ended.");
+      choose(p, action.kind, action.round, action.index);
     } else if (action.type === "dev") {
       if (!dev || p.id !== r.hostId)
         throw Error("Developer tools are disabled.");
@@ -138,16 +160,24 @@ export class GameEngine {
       if (
         r.phase !== "Preparing" ||
         p.hp <= 0 ||
-        (r.deadline > 0 && Date.now() >= r.deadline)
+        (r.deadline > 0 && this.now() >= r.deadline)
       )
         throw Error("You can only change your team during preparation.");
       const rng = this.rng(r);
       switch (action.type) {
         case "buy":
-          buy(p, action.index, randomUUID());
+          if (!p.shop[action.index]) throw Error("No reserved offer.");
+          assertPool(r);
+          buy(p, action.index, this.identity());
+          assertPool(r);
           break;
         case "sell":
-          sell(p, action.unitId);
+          {
+            const owned = p.units.find((u) => u.id === action.unitId);
+            if (!owned) throw Error("Unit not found.");
+            sell(p, action.unitId);
+            returnUnit(r, owned);
+          }
           break;
         case "move":
           move(p, action.unitId, action.slot);
@@ -159,9 +189,9 @@ export class GameEngine {
           equip(p, action.unitId, action.itemIndex, true);
           break;
         case "reroll":
-          if (p.gold < RULES.rerollCost) throw Error("Not enough gold.");
-          p.gold -= RULES.rerollCost;
-          p.shop = rollShop(p.level, rng);
+          if (p.gold < this.rerollCost(p)) throw Error("Not enough gold.");
+          p.gold -= this.rerollCost(p);
+          pooledShop(r, p, rng);
           break;
         case "lock":
           p.locked = !p.locked;
@@ -175,6 +205,7 @@ export class GameEngine {
       }
       r.seed = rng.state >>> 0;
     }
+    drainRewards(p);
     s.seen.add(id);
     if (s.seen.size > 2048) s.seen.delete(s.seen.values().next().value!);
     this.touch(r);
@@ -186,10 +217,12 @@ export class GameEngine {
     const rng = this.rng(r);
     for (const p of r.players.filter((p) => p.hp > 0)) {
       repairFormation(p);
-      if (!p.locked) p.shop = rollShop(p.level, rng);
+      drainRewards(p);
+      if (!p.locked) pooledShop(r, p, rng);
     }
     r.seed = rng.state >>> 0;
-    r.deadline = Date.now() + RULES.prepMs / (this.speeds.get(r.key) ?? 1);
+    r.deadline = this.now() + RULES.prepMs / (this.speeds.get(r.key) ?? 1);
+    this.runBots(r);
   }
   battle(r: Room) {
     if (r.phase !== "Preparing") return;
@@ -200,7 +233,7 @@ export class GameEngine {
       id: `${r.key}:${r.round}:${p.id}`,
       playerId: p.id,
       round: r.round,
-      at: Date.now(),
+      at: this.now(),
       ...autoDeploy(p),
     }));
     const rotation = r.round % active.length;
@@ -221,14 +254,14 @@ export class GameEngine {
       );
     }
     r.seed = rng.state >>> 0;
-    const startedAt = Date.now(),
+    const startedAt = this.now(),
       playbackRate = this.speeds.get(r.key) ?? 1;
     for (const battle of r.battles) {
       battle.startedAt = startedAt;
       battle.playbackRate = playbackRate;
     }
     r.deadline =
-      Date.now() +
+      this.now() +
       Math.max(...r.battles.map((b) => b.duration)) /
         (this.speeds.get(r.key) ?? 1);
   }
@@ -274,19 +307,37 @@ export class GameEngine {
           : result.win
             ? Math.max(0, p.streak) + 1
             : Math.min(0, p.streak) - 1;
-      const earned = income(p) + (result.win ? 1 : 0);
-      p.gold += earned;
+      p.latestIncome = incomeBreakdown(p, result.win, r.round);
+      const earned = p.latestIncome.total;
+      p.gold = p.latestIncome.after;
+      const played = r.battles.find(
+        (b) => b.a === p.id || (b.b === p.id && !b.ghost),
+      );
+      if (played) {
+        const enemy = r.players.find(
+          (x) => x.id === (played.a === p.id ? played.b : played.a),
+        )!;
+        p.latestSummary = combatSummary(
+          played,
+          p,
+          enemy,
+          result.win,
+          result.damage,
+          r.round,
+        );
+      }
       addXP(p, 2);
       p.lastResult = `${result.win === null ? "Draw" : result.win ? "Victory" : "Defeat"} · ${result.damage ? `−${result.damage} HP · ` : ""}+${earned} gold`;
-      if (rng.next() < RULES.itemDropChance && p.inventory.length < 90)
-        p.inventory.push(rng.pick(ITEMS).id);
     }
     r.seed = rng.state >>> 0;
     const newlyOut = r.players
       .filter((p) => p.hp === 0 && !p.rank)
       .sort((a, b) => a.gold - b.gold || a.id.localeCompare(b.id));
     let rank = r.players.filter((p) => !p.rank).length;
-    for (const p of newlyOut) p.rank = rank--;
+    for (const p of newlyOut) {
+      p.rank = rank--;
+      eliminateSupply(r, p);
+    }
     const remaining = r.players.filter((p) => p.hp > 0);
     if (remaining.length <= 1) {
       if (remaining[0]) remaining[0].rank = 1;
@@ -294,14 +345,14 @@ export class GameEngine {
       r.deadline = 0;
       this.onFinish(structuredClone(r));
     } else
-      r.deadline = Date.now() + RULES.resultMs / (this.speeds.get(r.key) ?? 1);
+      r.deadline = this.now() + RULES.resultMs / (this.speeds.get(r.key) ?? 1);
   }
-  tick(now = Date.now()) {
+  tick(now = this.now()) {
     const changed: string[] = [];
     for (const r of this.rooms.values()) {
       if (
         now - r.createdAt > RULES.roomTtlMs ||
-        (!r.players.some((p) => p.connected) &&
+        (!r.players.some((p) => p.connected && !p.bot) &&
           now - r.updatedAt > RULES.emptyTtlMs)
       ) {
         this.rooms.delete(r.key);
@@ -311,21 +362,117 @@ export class GameEngine {
         changed.push(r.key);
         continue;
       }
+      if (
+        r.phase === "Choosing" &&
+        r.players.every(
+          (p) => !p.pendingChoices?.item && !p.pendingChoices?.augment,
+        )
+      ) {
+        this.prepare(r);
+        r.revision++;
+        changed.push(r.key);
+        continue;
+      }
       if (r.deadline && now >= r.deadline) {
         if (r.phase === "Preparing") this.battle(r);
         else if (r.phase === "Battling") this.resolve(r);
-        else if (r.phase === "Resolving") this.prepare(r);
+        else if (r.phase === "Resolving") this.beginChoices(r);
+        else if (r.phase === "Choosing") this.finishChoices(r);
         r.revision++;
         changed.push(r.key);
       }
     }
     return changed;
   }
+  rerollCost(p: Player) {
+    return Math.max(1, RULES.rerollCost - augmentValue(p.augments, "reroll"));
+  }
+  restoreRoom(input: Room) {
+    const room = migrateRoom(input);
+    this.rooms.set(room.key, room);
+    for (const p of room.players.filter((p) => p.bot))
+      if (
+        ![...this.sessions.values()].some(
+          (s) => s.key === room.key && s.playerId === p.id,
+        )
+      ) {
+        const token = randomBytes(32).toString("hex");
+        this.sessions.set(token, {
+          token,
+          key: room.key,
+          playerId: p.id,
+          seen: new Set(),
+        });
+      }
+    return room;
+  }
+  practice(name: string, difficulty: Difficulty) {
+    const session = this.create(name),
+      room = this.rooms.get(session.key)!;
+    for (let i = 0; i < STRATEGY.bots; i++) {
+      const bot = this.join(room.key, "Bot " + (i + 1));
+      const p = room.players.find((p) => p.id === bot.playerId)!;
+      p.bot = { difficulty, plannedRound: 0 };
+      p.ready = true;
+    }
+    room.mode = "practice";
+    room.players[0].ready = true;
+    this.action(session, "practice-start", { type: "start" });
+    return session;
+  }
+  beginChoices(r: Room) {
+    if (r.phase !== "Resolving") return;
+    const rng = this.rng(r);
+    for (const p of r.players.filter((p) => p.hp > 0))
+      offerChoices(p, r.round, rng);
+    r.seed = rng.state >>> 0;
+    if (
+      !r.players.some(
+        (p) => p.pendingChoices?.item || p.pendingChoices?.augment,
+      )
+    ) {
+      this.prepare(r);
+      return;
+    }
+    r.phase = "Choosing";
+    r.deadline = this.now() + STRATEGY.choiceMs / (this.speeds.get(r.key) ?? 1);
+    this.runBots(r);
+  }
+  finishChoices(r: Room) {
+    if (r.phase !== "Choosing") return;
+    for (const p of r.players)
+      for (const kind of ["item", "augment"] as const) {
+        const c = p.pendingChoices?.[kind];
+        if (c) choose(p, kind, c.round, 0);
+      }
+    this.prepare(r);
+  }
+  runBots(r: Room) {
+    for (const p of r.players.filter((p) => p.bot && p.hp > 0)) {
+      if (r.phase === "Preparing" && p.bot!.plannedRound === r.round) continue;
+      if (r.phase === "Preparing") p.bot!.plannedRound = r.round;
+      const session = [...this.sessions.values()].find(
+        (s) => s.key === r.key && s.playerId === p.id,
+      );
+      if (!session) continue;
+      let rerolls = 0;
+      for (let i = 0; i < DIFFICULTY[p.bot!.difficulty].budget; i++) {
+        const action = planBot(r, p, rerolls);
+        if (!action) break;
+        this.action(
+          session,
+          "bot:" + r.phase + ":" + r.round + ":" + i,
+          action,
+        );
+        if (action.type === "reroll") rerolls++;
+      }
+    }
+  }
   debug(r: Room, p: Player, a: Extract<Action, { type: "dev" }>) {
     if (a.command === "advance") {
       if (r.phase === "Lobby" || r.phase === "Finished")
         throw Error("No active phase.");
-      r.deadline = Date.now() - 1;
+      r.deadline = this.now() - 1;
       return;
     }
     if (a.command === "speed") {
@@ -341,7 +488,7 @@ export class GameEngine {
       r.seed = n;
       return;
     }
-    if (r.phase !== "Preparing" || Date.now() >= r.deadline)
+    if (r.phase !== "Preparing" || this.now() >= r.deadline)
       throw Error("Use during preparation.");
     switch (a.command) {
       case "gold":
@@ -352,7 +499,12 @@ export class GameEngine {
         break;
       case "shop":
         if (!UNIT_MAP[a.value ?? ""]) throw Error("Unknown unit.");
-        p.shop = Array(5).fill(a.value);
+        releaseShop(r, p);
+        p.shop = Array.from({ length: 5 }, () => {
+          if ((r.pool?.available[a.value!] ?? 0) < 1) return null;
+          reserve(r, a.value!);
+          return a.value!;
+        });
         break;
       case "unit": {
         if (!UNIT_MAP[a.value ?? ""]) throw Error("Unknown unit.");
@@ -360,8 +512,9 @@ export class GameEngine {
           (s) => !p.units.some((u) => u.slot === s),
         );
         if (slot === undefined) throw Error("Bench full.");
+        reserve(r, a.value!);
         p.units.push({
-          id: randomUUID(),
+          id: this.identity(),
           defId: a.value!,
           star: 1,
           slot,

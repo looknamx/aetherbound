@@ -1,3 +1,4 @@
+import { EVENT_KIND, structuredEventSchema } from "./combatEvents";
 import { BattleStatsCollector, hpDamage } from "./battleStats";
 import {
   isDeploymentSlot,
@@ -87,14 +88,14 @@ export function nextStep(
   }
   return null;
 }
-function actors(p: Player, side: 0 | 1): Actor[] {
+function actors(p: Player, side: 0 | 1, enemyCount: number): Actor[] {
   const claimed = new Set<string>();
   return p.units
     .filter((u) => isDeploymentSlot(u.slot))
     .sort((a, b) => a.slot - b.slot)
     .map((u) => {
       const d = UNIT_MAP[u.defId],
-        stats = battleStats(u, p.units);
+        stats = battleStats(u, p.units, p.augments, enemyCount);
       let { x, y } = relativeToCanonical(slotToPoint(u.slot), side);
       if (claimed.has(`${x},${y}`)) {
         const free = Array.from({ length: 18 }, (_, i) => ({
@@ -140,7 +141,12 @@ export function simulate(
   round = 0,
 ): Battle {
   const rng = new RNG(seed);
-  const units = [...actors(a, 0), ...actors(b, 1)];
+  const units = [
+    ...actors(a, 0, b.units.filter((u) => isDeploymentSlot(u.slot)).length),
+    ...actors(b, 1, a.units.filter((u) => isDeploymentSlot(u.slot)).length),
+  ];
+  let sequence = 0;
+  const targets = new Map<string, string>();
   const battleId = `${round}:${a.id}-${b.id}-${seed}`;
   const collector = new BattleStatsCollector(battleId, round);
   for (const u of units)
@@ -159,7 +165,22 @@ export function simulate(
     value?: number,
     text?: string,
   ) => {
-    const event: CombatEvent = { tick, type, source, target, value, text };
+    const actor = units.find((u) => u.id === source);
+    const event: CombatEvent = {
+      sequence: sequence++,
+      kind: EVENT_KIND[type],
+      tick,
+      type,
+      source,
+      target,
+      value,
+      text,
+      position: actor ? { x: actor.x, y: actor.y } : undefined,
+      owner: actor?.side,
+      effectId:
+        type === "cast" || type === "castResolved" ? actor?.defId : undefined,
+    };
+    structuredEventSchema.parse(event);
     events.push(event);
     collector.record(event);
   };
@@ -183,6 +204,11 @@ export function simulate(
     t.hp = Math.max(0, t.hp - n);
     t.mana = Math.min(t.maxMana, t.mana + 8);
     const event: CombatEvent = {
+      sequence: sequence++,
+      kind: EVENT_KIND.damage,
+      damageType: magic ? "magic" : "physical",
+      position: { x: t.x, y: t.y },
+      owner: t.side,
       tick,
       type: "damage",
       source: s.id,
@@ -192,9 +218,14 @@ export function simulate(
       killed: t.hp <= 0,
       text: magic ? "magic" : "physical",
     };
+    structuredEventSchema.parse(event);
     events.push(event);
     collector.record(event);
-    if (t.hp <= 0) emit("death", t.id);
+    if (absorbed > 0) {
+      emit("shieldDamage", s.id, t.id, absorbed);
+      if (t.shield === 0) emit("shieldBreak", t.id, s.id, absorbed);
+    }
+    if (t.hp <= 0) emit("death", t.id, s.id);
     else if (!t.lifeline && t.hp < t.maxHp * 0.3 && passive(t, "lifeline")) {
       t.lifeline = true;
       t.shield += passive(t, "lifeline");
@@ -235,6 +266,7 @@ export function simulate(
       })),
       events: [...events],
     });
+  for (const u of units) if (u.shield > 0) emit("shield", u.id, u.id, u.shield);
   snapshot();
   for (tick = 1; tick <= RULES.maxTicks; tick++) {
     events = [];
@@ -266,6 +298,10 @@ export function simulate(
             : distance(u, x) - distance(u, y),
       );
       const target = enemies[0];
+      if (targets.get(u.id) !== target.id) {
+        targets.set(u.id, target.id);
+        emit("target", u.id, target.id);
+      }
       if (
         u.mana >= u.maxMana &&
         u.silence === 0 &&
@@ -350,6 +386,7 @@ export function simulate(
             }
           }
         }
+        emit("castResolved", u.id, target.id, 0, skill.name);
         continue;
       }
       if (distance(u, target) > u.range) {
@@ -374,6 +411,7 @@ export function simulate(
         u.attacks++;
         const crit = rng.next() < u.crit;
         emit("attack", u.id, target.id, 0, crit ? "critical" : "");
+        if (crit) emit("critical", u.id, target.id);
         const dealt = hit(u, target, u.attack * (crit ? 1.5 : 1), false);
         u.mana = Math.min(
           u.maxMana,
@@ -393,6 +431,10 @@ export function simulate(
   const winner: 0 | 1 | null =
     left.length && !right.length ? 0 : right.length && !left.length ? 1 : null;
   const survivors = winner === 0 ? left : right;
+  events = [];
+  tick = frames.at(-1)?.tick ?? 0;
+  emit("battleEnd", "battle");
+  frames[frames.length - 1].events.push(...events);
   return {
     id: battleId,
     stats: collector.snapshot(),

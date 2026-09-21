@@ -35,7 +35,7 @@ it("two sockets receive identical deployed boards and reconnect restores them; f
       unit("lumen", "reserve-range", 38),
     ];
     const forged = await request(a, "action", {
-      version: 1,
+      version: 2,
       id: "forged-deploy",
       action: { type: "autoDeploy", units: [{ id: "fake", slot: 3 }] },
     });
@@ -47,9 +47,11 @@ it("two sockets receive identical deployed boards and reconnect restores them; f
     server.broadcast(room.key);
     const [sa, sb] = await Promise.all([nextA, nextB]);
     expect(sa.room.phase).toBe("Battling");
-    expect(sa.room.players[0].units).toEqual(sb.room.players[0].units);
+    expect(sa.room.players[0].units.filter((u) => u.slot < 36)).toEqual(
+      sb.room.players[0].units,
+    );
     expect(sa.room.players[0].units.filter((u) => u.slot < 36)).toHaveLength(4);
-    expect(sa.room.deployments).toEqual(sb.room.deployments);
+    expect(sb.room.deployments?.every((d) => d.playerId === sb.you)).toBe(true);
     expect(sa.room.battles).toEqual(sb.room.battles);
     expect(sa.room.deployments![0].moves.map((m) => m.unitId)).toEqual([
       "legend",
@@ -58,7 +60,7 @@ it("two sockets receive identical deployed boards and reconnect restores them; f
     expect(
       (
         await request(a, "action", {
-          version: 1,
+          version: 2,
           id: "late-move-99",
           action: { type: "move", unitId: "reserve-range", slot: 4 },
         })

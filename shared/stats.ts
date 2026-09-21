@@ -1,3 +1,5 @@
+import { augmentValue } from "./strategyConfig";
+import { isDeploymentSlot } from "./deploymentZone";
 import { ITEM_MAP, STAT_MULT, UNIT_MAP } from "./content";
 import { synergies } from "./economy";
 import type { Unit } from "./types";
@@ -55,6 +57,8 @@ export function permanentStats(
 export function battleStats(
   unit: Pick<Unit, "defId" | "star" | "items">,
   army: Unit[],
+  augments: string[] = [],
+  enemyCount = 0,
 ): UnitStats {
   const stats = permanentStats(unit),
     traits = Object.fromEntries(synergies(army).map((t) => [t.id, t.tier]));
@@ -68,5 +72,34 @@ export function battleStats(
   stats.crit += traits.Ranger * 0.1;
   stats.regen += traits.Weaver * 8;
   stats.spellPower += traits.Arcanist * 0.2;
+  const owned = army.find(
+    (u) => u === unit || ("id" in unit && u.id === unit.id),
+  );
+  const slot = owned?.slot;
+  stats.speed *= 1 + augmentValue(augments, "speed");
+  stats.mana += augmentValue(augments, "mana");
+  if (slot !== undefined && Math.floor(slot / 6) === 3)
+    stats.armor += augmentValue(augments, "frontArmor");
+  if (slot !== undefined && Math.floor(slot / 6) === 5)
+    stats.range += augmentValue(augments, "backRange");
+  if (unit.star === 1) stats.maxHp += augmentValue(augments, "rookie");
+  if (UNIT_MAP[unit.defId].origin === "Emberkin")
+    stats.attack += augmentValue(augments, "ember");
+  if (army.filter((u) => isDeploymentSlot(u.slot)).length < enemyCount)
+    stats.shield += augmentValue(augments, "underdog");
+  const amp = augmentValue(augments, "items");
+  if (amp) {
+    const base = permanentStats({ ...unit, items: [] }),
+      equipped = permanentStats(unit);
+    for (const key of [
+      "attack",
+      "maxHp",
+      "armor",
+      "resist",
+      "speed",
+      "mana",
+    ] as const)
+      stats[key] += (equipped[key] - base[key]) * amp;
+  }
   return stats;
 }

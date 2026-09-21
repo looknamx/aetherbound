@@ -29,7 +29,7 @@ it("broadcasts identical stats, rejects invalid zones atomically, and restores l
     r.players[1].units = [unit("rivet", "b", 36)];
     const before = structuredClone(r);
     const invalid = await request(a, "action", {
-      version: 1,
+      version: 2,
       id: "invalid-zone-1",
       action: { type: "move", unitId: "a", slot: 0 },
     });
@@ -52,7 +52,7 @@ it("broadcasts identical stats, rejects invalid zones atomically, and restores l
     const latest = structuredClone(r.players[0].latestBattleStats);
     expect(latest?.units[0].unitId).toBe("a");
     const forged = await request(a, "action", {
-      version: 1,
+      version: 2,
       id: "forged-stats-1",
       action: { type: "battleStats", damageDealt: 999999 },
     });

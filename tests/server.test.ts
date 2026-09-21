@@ -121,7 +121,7 @@ describe("authoritative rooms", () => {
     expect(ar.ok).toBe(true);
     expect((await emit(b, "enter", { name: "B", key: ar.key })).ok).toBe(true);
     const action = (s: Socket, id: string, action: unknown) =>
-      emit(s, "action", { version: 1, id, action });
+      emit(s, "action", { version: 2, id, action });
     expect((await action(a, "bad-schema", { type: "buy", index: -1 })).ok).toBe(
       false,
     );
