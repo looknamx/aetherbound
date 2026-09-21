@@ -21,6 +21,13 @@ export interface IncomeBreakdown {
   capped: number;
 }
 export interface CombatSummary {
+  opponentName?: string;
+  events?: {
+    tick: number;
+    type: "cast" | "death" | "shieldBreak";
+    sourceDefId: string;
+    targetDefId?: string;
+  }[];
   round: number;
   result: "win" | "loss" | "draw";
   playerDamage: number;

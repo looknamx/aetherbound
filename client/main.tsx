@@ -1,16 +1,16 @@
+import { FieldGuide } from "./hud/FieldGuide";
+import { TeamStatistics } from "./hud/TeamStatistics";
+import { GameShell } from "./hud/GameShell";
+import { HUD } from "./hud/labels";
 import {
   PracticeEntry,
-  ScoutingPanel,
-  ChoicePanel,
   AugmentList,
   SynergyHint,
-  RoundInsights,
 } from "./strategy/StrategyPanels";
 import { LABELS, type Locale } from "./strategy/labels";
 import type { Difficulty } from "../shared/strategyTypes";
 import { augmentValue } from "../shared/strategyConfig";
 import { shopOdds } from "../shared/pool";
-import { LatestBattleStatsPanel } from "./cards/LatestBattleStatsPanel";
 import { isDeploymentSlot, PLACEMENT_MESSAGE } from "../shared/deploymentZone";
 import React, { useEffect, useRef, useState } from "react";
 import { createRoot } from "react-dom/client";
@@ -24,16 +24,11 @@ import {
   COLORS,
   ITEMS,
   ITEM_MAP,
-  ODDS,
-  RARITIES,
-  STAT_MULT,
   TRAITS,
   UNIT_MAP,
   UNITS,
-  XP_TO_LEVEL,
 } from "../shared/content";
-import { synergies } from "../shared/economy";
-import type { Action, Snapshot, Unit } from "../shared/types";
+import type { Action, Snapshot, Unit, Fighter } from "../shared/types";
 import "./style.css";
 import "./cards/cards.css";
 import "@fontsource/dm-sans/400.css";
@@ -43,6 +38,7 @@ import "@fontsource/dm-sans/700.css";
 import "@fontsource/cormorant-garamond/400.css";
 import "@fontsource/cormorant-garamond/500.css";
 import "@fontsource/cormorant-garamond/500-italic.css";
+import "./hud/hud.css";
 const wordmark = (
   <span className="wordmark">
     <span className="brand-icon">◈</span> AETHERBOUND
@@ -73,8 +69,9 @@ function App() {
     [now, setNow] = useState(Date.now()),
     [pending, setPending] = useState(false),
     [devValue, setDevValue] = useState("cinder");
-  const [cardDetail, setCardDetail] =
-    useState<Pick<Unit, "defId" | "star" | "items">>();
+  const [cardDetail, setCardDetail] = useState<
+    Pick<Unit, "defId" | "star" | "items"> & { fighter?: Fighter }
+  >();
   const [dragView, setDragView] = useState<{
     id: string;
     x: number;
@@ -198,6 +195,8 @@ function App() {
     } else setError(reply.error!);
   };
   const drop = (slot: number, id?: string, item?: number) => {
+    if (!connected || pending || r?.phase !== "Preparing" || !p || p.hp <= 0)
+      return;
     if (slot < 36 && !isDeploymentSlot(slot)) {
       setError(PLACEMENT_MESSAGE);
       return;
@@ -213,7 +212,12 @@ function App() {
     }
   };
   const select = (id: string) => {
-    if (selectedItem !== undefined) {
+    if (
+      selectedItem !== undefined &&
+      r?.phase === "Preparing" &&
+      connected &&
+      !pending
+    ) {
       void act({ type: "equip", unitId: id, itemIndex: selectedItem });
       setSelectedItem(undefined);
     } else setSelected(selected === id ? undefined : id);
@@ -238,7 +242,10 @@ function App() {
   const suppressClick = useRef(false);
   return (
     <div
-      className={reduced ? "app reduced" : "app"}
+      className={
+        (reduced ? "app reduced" : "app") +
+        (r && r.phase !== "Lobby" ? " in-game" : "")
+      }
       onPointerDownCapture={(e) => {
         if (e.pointerType === "mouse" || disabled) return;
         const target = (e.target as Element).closest<HTMLElement>(
@@ -316,24 +323,26 @@ function App() {
           <UnitCard unit={f.unit} variant="drag" />
         </div>
       ))}
-      <header>
-        {wordmark}
-        <div className="header-right">
-          <span className={`connection ${connected ? "online" : ""}`}>
-            ● {connected ? "Connected" : "Reconnecting"}
-          </span>
-          <button className="quiet" onClick={() => setCodex(true)}>
-            Field guide
-          </button>
-          <button
-            className="icon-button"
-            aria-label="Settings"
-            onClick={() => setSettings(!settings)}
-          >
-            ⚙
-          </button>
-        </div>
-      </header>
+      {(!r || r.phase === "Lobby") && (
+        <header>
+          {wordmark}
+          <div className="header-right">
+            <span className={`connection ${connected ? "online" : ""}`}>
+              ● {connected ? "Connected" : "Reconnecting"}
+            </span>
+            <button className="quiet" onClick={() => setCodex(true)}>
+              Field guide
+            </button>
+            <button
+              className="icon-button"
+              aria-label="Settings"
+              onClick={() => setSettings(!settings)}
+            >
+              ⚙
+            </button>
+          </div>
+        </header>
+      )}
       {error && (
         <div className="toast error" role="alert" onClick={() => setError("")}>
           {error} <span>×</span>
@@ -503,306 +512,231 @@ function App() {
           </p>
         </main>
       ) : (
-        <main className="match">
-          <div className="match-heading">
-            <div>
-              <span className="eyebrow">
-                THE SHATTERED ISLES <span className="dot">/</span> ROOM {r.key}
-              </span>
-              <h2>
-                {r.phase === "Preparing"
-                  ? "Build your alliance"
-                  : r.phase === "Battling"
-                    ? "Let the banners clash"
-                    : r.phase === "Finished"
-                      ? "An expedition remembered"
-                      : "The dust settles"}
-              </h2>
-            </div>
-            <div className="round">
-              <span>
-                ROUND <strong>{String(r.round).padStart(2, "0")}</strong>
-              </span>
-              <div className={`phase ${r.phase.toLowerCase()}`}>
-                {r.phase === "Preparing"
-                  ? "PREPARATION"
-                  : r.phase === "Choosing"
-                    ? LABELS[locale].choices
-                    : r.phase.toUpperCase()}{" "}
-                <b>
-                  {r.deadline
-                    ? `${Math.max(0, Math.ceil((r.deadline - now - clockOffset) / 1000))}s`
-                    : "—"}
-                </b>
-              </div>
-            </div>
-          </div>
-          <div className="game-layout">
-            <aside className="left-panel">
-              <div className="section-label">
-                THE EXPEDITION{" "}
-                <span>{r.players.filter((p) => p.hp > 0).length} ALIVE</span>
-              </div>
-              <div className="player-list">
-                {[...r.players]
-                  .sort((a, b) => b.hp - a.hp)
-                  .map((m, i) => (
-                    <div
-                      key={m.id}
-                      className={`player-row ${m.id === p.id ? "self" : ""} ${m.hp <= 0 ? "eliminated" : ""}`}
-                    >
-                      <div className="avatar">
-                        {["◈", "✧", "⬡", "△"][r.players.indexOf(m)]}
-                      </div>
-                      <div className="player-meta">
-                        <strong>
-                          {m.name} {m.id === p.id && <small>YOU</small>}
-                        </strong>
-                        <div className="hp-track">
-                          <i style={{ width: `${m.hp}%` }} />
-                        </div>
-                        <small>
-                          {m.hp <= 0
-                            ? `Rank #${m.rank}`
-                            : m.connected
-                              ? `Level ${m.level}`
-                              : "Reconnecting…"}
-                        </small>
-                      </div>
-                      <b>
-                        {m.hp}
-                        <small> HP</small>
-                      </b>
-                    </div>
-                  ))}
-              </div>
-              <div className="section-label synergy-label">ACTIVE TRAITS</div>
-              <div className="synergies">
-                {synergies(p.units)
-                  .filter((t) => t.count > 0)
-                  .map((t) => (
-                    <div
-                      className={`trait ${t.tier ? "active" : ""}`}
-                      key={t.id}
-                      title={t.description}
-                    >
-                      <span className="trait-mark">{t.tier ? "◆" : "◇"}</span>
-                      <div>
-                        <strong>{t.id}</strong>
-                        <small>{t.description}</small>
-                      </div>
-                      <b>
-                        {t.count}/{t.thresholds.find((n) => n > t.count) ?? 4}
-                      </b>
-                    </div>
-                  ))}
-                {!p.units.some((u) => u.slot < 36) && (
-                  <p className="empty-note">
-                    Field different recruits with matching traits to awaken your
-                    alliance.
-                  </p>
-                )}
-              </div>
-              <div className="field-note">
-                <span>FIELD NOTE 01</span>
-                <p>
-                  Three of a kind ascend.
-                  <br />A stronger star can turn the tide.
-                </p>
-                <button className="text-button" onClick={() => setCodex(true)}>
-                  Explore the field guide ↗
-                </button>
-              </div>
-            </aside>
-            <section className="battlefield">
-              <div className="board-top">
-                <span>
-                  <i className="live-dot" />{" "}
-                  {battle
-                    ? `${r.players.find((x) => x.id === battle.a)?.name} vs ${r.players.find((x) => x.id === battle.b)?.name}${battle.ghost ? " · ECHO" : ""}`
-                    : locale === "th"
-                      ? "กระดานและการส่องคู่แข่ง"
-                      : "BOARD & SCOUTING"}
-                </span>
-                <span>
-                  {p.units.filter((u) => u.slot < 36).length} / {p.level}{" "}
-                  DEPLOYED
-                </span>
-              </div>
-              <ScoutingPanel
-                views={state.scouting ?? []}
-                ownSeat={r.players.findIndex((x) => x.id === p.id)}
-                phase={r.phase}
-                locale={locale}
-              >
-                <Board
-                  units={p.units}
-                  battle={battle}
-                  deadline={r.deadline}
-                  serverOffset={clockOffset}
-                  selected={selected}
-                  onSelect={select}
-                  onSlot={(slot) => {
-                    const target = p.units.find((u) => u.slot === slot);
-                    if (selectedItem !== undefined && target) select(target.id);
-                    else drop(slot);
-                  }}
-                  onDrop={drop}
-                  disabled={disabled}
-                  reduced={reduced}
-                  speed={speed}
-                  sound={sound}
-                  playerId={p.id}
-                  blockedSlots={p.blockedSlots}
-                  dragging={!!dragView}
-                  locale={locale}
-                  eventCursor={state.eventCursor}
-                />
-              </ScoutingPanel>
-              {r.deployments
-                ?.filter(
-                  (d) =>
-                    d.playerId === p.id &&
-                    d.round === r.round &&
-                    d.moves.length > 0,
-                )
-                .map((d) => (
-                  <div key={d.id} className="deploy-notice" role="status">
-                    จัดทีมอัตโนมัติ: ลงสนามเพิ่ม {d.moves.length} ใบ
-                    <span>
-                      {d.moves.map((m) => UNIT_MAP[m.defId].name).join(" · ")}
-                    </span>
-                  </div>
-                ))}
-              <div className="board-bottom">
-                <span>
-                  {r.phase === "Preparing"
-                    ? selectedItem !== undefined
-                      ? "Select a recruit to equip this relic"
-                      : selected
-                        ? "Choose a tile or bench slot · click selected unit to cancel"
-                        : "Drag recruits to deploy · or select, then tap a tile"
-                    : r.phase === "Battling"
-                      ? "SERVER-SIMULATED COMBAT · FORMATION LOCKED"
-                      : p.lastResult || "Awaiting the next round"}
-                </span>
-                <span>6 × 6</span>
-              </div>
-              <div className="bench-header">
-                <span>RESERVES</span>
-                <span>{p.units.filter((u) => u.slot >= 36).length} / 8</span>
-              </div>
-              <div className="bench">
-                {Array.from({ length: 8 }, (_, i) => {
-                  const u = p.units.find((u) => u.slot === i + 36);
-                  return (
-                    <button
-                      className={`bench-slot ${u && selected === u.id ? "chosen" : ""}`}
-                      data-slot={i + 36}
-                      data-unit={u?.id}
-                      data-testid={`bench-${i}`}
-                      key={i}
-                      disabled={disabled && !u}
-                      draggable={!!u && !disabled}
-                      onDragStart={(e) => {
-                        if (u) {
-                          e.dataTransfer.setData("unit", u.id);
-                          setCardDragImage(e, u.id);
-                          setSelected(u.id);
-                        }
-                      }}
-                      onDragOver={(e) => e.preventDefault()}
-                      onDrop={(e) => {
-                        e.preventDefault();
-                        const item = e.dataTransfer.getData("item");
-                        drop(
-                          i + 36,
-                          e.dataTransfer.getData("unit") || undefined,
-                          item ? Number(item) : undefined,
-                        );
-                      }}
-                      onClick={() => (u ? select(u.id) : drop(i + 36))}
-                      aria-label={
-                        u
-                          ? `Reserve ${UNIT_MAP[u.defId].name}`
-                          : `Empty reserve ${i + 1}`
+        <GameShell
+          state={state}
+          locale={locale}
+          connected={connected}
+          pending={pending}
+          interactionHint={
+            selectedItem !== undefined
+              ? locale === "th"
+                ? "เลือกตัวละครเพื่อสวมไอเทม"
+                : "Select a recruit to equip the item"
+              : selected
+                ? locale === "th"
+                  ? "เลือกช่องว่างเพื่อย้ายตัวละคร"
+                  : "Select a tile to move the recruit"
+                : undefined
+          }
+          remaining={Math.max(
+            0,
+            Math.ceil((r.deadline - now - clockOffset) / 1000),
+          )}
+          onAction={act}
+          onHome={() => {
+            sessionStorage.removeItem("aether-token");
+            location.href = "/";
+          }}
+          onAgain={() => {
+            if (pending) return;
+            setPending(true);
+            sessionStorage.removeItem("aether-token");
+            setSelected(undefined);
+            setSelectedItem(undefined);
+            setCardDetail(undefined);
+            socket.disconnect();
+            socket.once("connect", () => {
+              if (r.mode === "practice")
+                void practice(
+                  r.players.find((x) => x.bot)?.bot?.difficulty ?? "normal",
+                );
+              else void enter(false);
+            });
+            socket.connect();
+          }}
+          clearDetail={() => setCardDetail(undefined)}
+          detail={
+            cardDetail ? (
+              <UnitCard
+                unit={cardDetail}
+                fighter={cardDetail.fighter}
+                variant="detail"
+              />
+            ) : undefined
+          }
+          board={
+            <Board
+              compact
+              onInspect={(u, fighter) => setCardDetail({ ...u, fighter })}
+              units={p.units}
+              battle={battle}
+              deadline={r.deadline}
+              serverOffset={clockOffset}
+              selected={selected}
+              onSelect={select}
+              onSlot={(slot) => {
+                const target = p.units.find((u) => u.slot === slot);
+                if (selectedItem !== undefined && target) select(target.id);
+                else drop(slot);
+              }}
+              onDrop={drop}
+              disabled={disabled}
+              reduced={reduced}
+              speed={speed}
+              sound={sound}
+              playerId={p.id}
+              blockedSlots={p.blockedSlots}
+              dragging={!!dragView}
+              locale={locale}
+              eventCursor={state.eventCursor}
+            />
+          }
+          bench={
+            <div className="bench">
+              {Array.from({ length: 8 }, (_, i) => {
+                const u = p.units.find((u) => u.slot === i + 36);
+                return (
+                  <button
+                    className={`bench-slot ${u && selected === u.id ? "chosen" : ""} ${u && p.units.filter((x) => x.defId === u.defId && x.star === u.star).length >= 2 ? "merge-ready" : ""}`}
+                    data-slot={i + 36}
+                    data-unit={u?.id}
+                    data-testid={`bench-${i}`}
+                    key={i}
+                    disabled={disabled && !u}
+                    draggable={!!u && !disabled}
+                    onDragStart={(e) => {
+                      if (u) {
+                        e.dataTransfer.setData("unit", u.id);
+                        setCardDragImage(e, u.id);
+                        setSelected(u.id);
                       }
-                    >
-                      {u ? (
+                    }}
+                    onDragOver={(e) => e.preventDefault()}
+                    onDrop={(e) => {
+                      e.preventDefault();
+                      if (disabled) return;
+                      const item = e.dataTransfer.getData("item");
+                      drop(
+                        i + 36,
+                        e.dataTransfer.getData("unit") || undefined,
+                        item ? Number(item) : undefined,
+                      );
+                    }}
+                    onClick={() => (u ? select(u.id) : drop(i + 36))}
+                    aria-label={
+                      u
+                        ? `Reserve ${UNIT_MAP[u.defId].name}`
+                        : `Empty reserve ${i + 1}`
+                    }
+                  >
+                    {u ? (
+                      <UnitCard
+                        unit={u}
+                        variant="bench"
+                        selected={selected === u.id}
+                        recommended={state.autoDeployPreview?.includes(u.id)}
+                        disabled={disabled}
+                      />
+                    ) : (
+                      <span className="slot-number">{i + 1}</span>
+                    )}
+                  </button>
+                );
+              })}
+            </div>
+          }
+          shop={
+            <section className="shop">
+              <div className="shop-heading">
+                <div>
+                  <span className="section-label">THE WAYFARER’S MARKET</span>
+                  <small>Recruit. Combine. Ascend.</small>
+                </div>
+                <div
+                  className="shop-odds"
+                  title="Rarity odds at your current level"
+                >
+                  {shopOdds(p).map((n, i) => (
+                    <span key={i} style={{ color: COLORS[i] }}>
+                      {Math.round(n)}%
+                    </span>
+                  ))}
+                </div>
+                <div className="shop-actions">
+                  <button
+                    disabled={disabled}
+                    className={p.locked ? "locked" : ""}
+                    onClick={() => void act({ type: "lock" })}
+                  >
+                    {p.locked ? "◆ Locked" : "◇ Lock shop"}
+                  </button>
+                  <button
+                    disabled={
+                      disabled ||
+                      p.gold <
+                        Math.max(1, 2 - augmentValue(p.augments, "reroll"))
+                    }
+                    onClick={() => void act({ type: "reroll" })}
+                  >
+                    ↻ Refresh{" "}
+                    <span>
+                      {Math.max(1, 2 - augmentValue(p.augments, "reroll"))} ◉
+                    </span>
+                  </button>
+                </div>
+              </div>
+              <p className="hint">{LABELS[locale].pool}</p>
+              <div className="shop-cards">
+                {p.shop.map((id, i) =>
+                  id ? (
+                    <div key={i} className="shop-slot">
+                      <button
+                        key={i}
+                        data-testid={`shop-${i}`}
+                        className="recruit-card"
+                        style={
+                          {
+                            "--rarity": COLORS[UNIT_MAP[id].cost - 1],
+                          } as React.CSSProperties
+                        }
+                        disabled={disabled || p.gold < UNIT_MAP[id].cost}
+                        onClick={() => void act({ type: "buy", index: i })}
+                        title={`${UNIT_MAP[id].skill.name}: ${UNIT_MAP[id].skill.description}`}
+                        aria-label={`Buy ${UNIT_MAP[id].name}`}
+                      >
                         <UnitCard
-                          unit={u}
-                          variant="bench"
-                          selected={selected === u.id}
-                          recommended={state.autoDeployPreview?.includes(u.id)}
+                          unit={{ defId: id, star: 1, items: [] }}
+                          variant="shop"
+                          affordable={p.gold >= UNIT_MAP[id].cost}
                           disabled={disabled}
                         />
-                      ) : (
-                        <span className="slot-number">{i + 1}</span>
-                      )}
-                    </button>
-                  );
-                })}
+                      </button>
+                      <button
+                        className="inspect-shop"
+                        onClick={() =>
+                          setCardDetail({ defId: id, star: 1, items: [] })
+                        }
+                        aria-label={`Inspect ${UNIT_MAP[id].name}`}
+                      >
+                        Details & ability ↗
+                      </button>
+                      <details>
+                        <summary>{HUD[locale].traits}</summary>
+                        <SynergyHint player={p} defId={id} locale={locale} />
+                      </details>
+                    </div>
+                  ) : (
+                    <div key={i} className="sold-card">
+                      ✧<span>RECRUITED</span>
+                    </div>
+                  ),
+                )}
               </div>
-              <p className="bench-help">
-                ↗ AUTO marks the server’s next picks. Empty field slots fill
-                when preparation ends.
-              </p>
-              {p.units.some((u) => u.slot >= 44) && (
-                <div className="recovery-reserves">
-                  Recovery reserves — move a card to a free tile or sell it.
-                  <div>
-                    {p.units
-                      .filter((u) => u.slot >= 44)
-                      .map((u) => (
-                        <button
-                          key={u.id}
-                          onClick={() => select(u.id)}
-                          aria-label={`Recovery ${UNIT_MAP[u.defId].name}`}
-                        >
-                          <UnitCard unit={u} variant="bench" />
-                        </button>
-                      ))}
-                  </div>
-                </div>
-              )}
             </section>
-            <aside className="right-panel">
-              <div className="economy">
-                <span className="section-label">YOUR RESOURCES</span>
-                <div className="gold">
-                  <span>◉</span> <strong data-testid="gold">{p.gold}</strong>
-                  <small>GOLD</small>
-                </div>
-                <div className="level-row">
-                  <strong>Level {p.level}</strong>
-                  <small>
-                    {p.level === 8
-                      ? "MAX"
-                      : `${p.xp} / ${XP_TO_LEVEL[p.level]} XP`}
-                  </small>
-                </div>
-                <div className="xp-track">
-                  <i
-                    style={{
-                      width:
-                        p.level === 8
-                          ? "100%"
-                          : `${(p.xp / XP_TO_LEVEL[p.level]) * 100}%`,
-                    }}
-                  />
-                </div>
-                <button
-                  className="xp-button"
-                  onClick={() => void act({ type: "xp" })}
-                  disabled={disabled || p.gold < 4 || p.level >= 8}
-                >
-                  Buy 4 XP <span>4 ◉</span>
-                </button>
-                <p className="hint">+1 field slot each level</p>
-              </div>
-              <div className="section-label">
-                RELIC SATCHEL <span>{p.inventory.length}</span>
-              </div>
+          }
+          items={
+            <>
+              {" "}
               <div className="inventory">
                 {p.inventory.map((id, i) => (
                   <button
@@ -836,10 +770,33 @@ function App() {
               <p className="hint">
                 Drag onto a recruit, or select relic then recruit.
               </p>
+            </>
+          }
+          context={
+            <>
+              <button
+                disabled={disabled || p.gold < 4 || p.level >= 8}
+                onClick={() => void act({ type: "xp" })}
+              >
+                {HUD[locale].xp}
+              </button>{" "}
               <div className="unit-info">
                 {def && unit ? (
                   <>
                     <UnitCard unit={unit} variant="detail" />
+                    <TeamStatistics
+                      locale={locale}
+                      snapshot={
+                        p.latestBattleStats
+                          ? {
+                              ...p.latestBattleStats,
+                              units: p.latestBattleStats.units.filter(
+                                (row) => row.unitId === unit.id,
+                              ),
+                            }
+                          : undefined
+                      }
+                    />
                     <div className="equipped">
                       {unit.items.map((id, i) => (
                         <button
@@ -878,201 +835,96 @@ function App() {
                 ) : (
                   <>
                     <div className="empty-sigil">✧</div>
-                    <h3>Know your recruits</h3>
-                    <p className="hint">
-                      Select a recruit to inspect their ability, stats and
-                      equipped relics.
-                    </p>
+                    <h3>{HUD[locale].context}</h3>
+                    <p className="hint">{HUD[locale].help}</p>
                   </>
                 )}
               </div>
-            </aside>
-          </div>
-          <label className="strategy-language">
-            {LABELS[locale].language}
-            <select
-              value={locale}
-              onChange={(e) => setLocale(e.target.value as Locale)}
-            >
-              <option value="th">Thai</option>
-              <option value="en">English</option>
-            </select>
-          </label>
-          {r.phase === "Choosing" && (
-            <ChoicePanel
-              player={p}
-              locale={locale}
-              disabled={pending || !connected || p.hp <= 0}
-              onAction={(action) => void act(action)}
-            />
-          )}
-          <AugmentList ids={p.augments ?? []} locale={locale} />
-          <RoundInsights player={p} locale={locale} />
-          <LatestBattleStatsPanel
-            snapshot={p.latestBattleStats}
-            battling={r.phase === "Battling"}
-            round={r.round}
-          />
-          <section className="shop">
-            <div className="shop-heading">
-              <div>
-                <span className="section-label">THE WAYFARER’S MARKET</span>
-                <small>Recruit. Combine. Ascend.</small>
-              </div>
-              <div
-                className="shop-odds"
-                title="Rarity odds at your current level"
-              >
-                {shopOdds(p).map((n, i) => (
-                  <span key={i} style={{ color: COLORS[i] }}>
-                    {Math.round(n)}%
-                  </span>
-                ))}
-              </div>
-              <div className="shop-actions">
-                <button
-                  disabled={disabled}
-                  className={p.locked ? "locked" : ""}
-                  onClick={() => void act({ type: "lock" })}
-                >
-                  {p.locked ? "◆ Locked" : "◇ Lock shop"}
-                </button>
-                <button
-                  disabled={
-                    disabled ||
-                    p.gold < Math.max(1, 2 - augmentValue(p.augments, "reroll"))
-                  }
-                  onClick={() => void act({ type: "reroll" })}
-                >
-                  ↻ Refresh{" "}
-                  <span>
-                    {Math.max(1, 2 - augmentValue(p.augments, "reroll"))} ◉
-                  </span>
-                </button>
-              </div>
-            </div>
-            <p className="hint">{LABELS[locale].pool}</p>
-            <div className="shop-cards">
-              {p.shop.map((id, i) =>
-                id ? (
-                  <div key={i} className="shop-slot">
+              <AugmentList ids={p.augments ?? []} locale={locale} />
+            </>
+          }
+          settings={
+            <>
+              {state.devTools && r.hostId === p.id && (
+                <details className="hud-developer">
+                  <summary>Development controls · loopback only</summary>
+                  <input
+                    aria-label="Developer value"
+                    value={devValue}
+                    onChange={(e) => setDevValue(e.target.value)}
+                  />
+                  {(
+                    [
+                      "gold",
+                      "level",
+                      "seed",
+                      "shop",
+                      "unit",
+                      "item",
+                      "advance",
+                      "speed",
+                    ] as const
+                  ).map((command) => (
                     <button
-                      key={i}
-                      data-testid={`shop-${i}`}
-                      className="recruit-card"
-                      style={
-                        {
-                          "--rarity": COLORS[UNIT_MAP[id].cost - 1],
-                        } as React.CSSProperties
-                      }
-                      disabled={disabled || p.gold < UNIT_MAP[id].cost}
-                      onClick={() => void act({ type: "buy", index: i })}
-                      title={`${UNIT_MAP[id].skill.name}: ${UNIT_MAP[id].skill.description}`}
-                      aria-label={`Buy ${UNIT_MAP[id].name}`}
-                    >
-                      <UnitCard
-                        unit={{ defId: id, star: 1, items: [] }}
-                        variant="shop"
-                        affordable={p.gold >= UNIT_MAP[id].cost}
-                        disabled={disabled}
-                      />
-                    </button>
-                    <button
-                      className="inspect-shop"
+                      key={command}
+                      disabled={pending}
                       onClick={() =>
-                        setCardDetail({ defId: id, star: 1, items: [] })
+                        void act({ type: "dev", command, value: devValue })
                       }
-                      aria-label={`Inspect ${UNIT_MAP[id].name}`}
                     >
-                      Details & ability ↗
+                      {command}
                     </button>
-                    <SynergyHint player={p} defId={id} locale={locale} />
-                  </div>
-                ) : (
-                  <div key={i} className="sold-card">
-                    ✧<span>RECRUITED</span>
-                  </div>
-                ),
-              )}
-            </div>
-          </section>
-          {r.phase === "Resolving" && (
-            <div className="result-banner">
-              {p.lastResult} <span>Your next formation begins shortly.</span>
-            </div>
-          )}
-          {r.phase === "Finished" && (
-            <div className="modal-backdrop">
-              <section className="modal finish">
-                <div className="victory-sigil">♜</div>
-                <div className="eyebrow">THE LAST BANNER STANDING</div>
-                <h1>{r.players.find((x) => x.rank === 1)?.name}</h1>
-                <p>Champion of the Shattered Isles · {r.round} rounds</p>
-                {[...r.players]
-                  .sort((a, b) => (a.rank ?? 9) - (b.rank ?? 9))
-                  .map((m) => (
-                    <div className="ranking" key={m.id}>
-                      <b>#{m.rank}</b>
-                      <strong>{m.name}</strong>
-                      <span>{m.hp} HP</span>
-                    </div>
                   ))}
-                <button
-                  className="primary"
-                  onClick={() => {
-                    sessionStorage.removeItem("aether-token");
-                    location.href = "/";
+                </details>
+              )}
+              <label>
+                {HUD[locale].sound}
+                <input
+                  type="checkbox"
+                  checked={sound}
+                  onChange={(e) => {
+                    setSound(e.target.checked);
+                    localStorage.setItem(
+                      "aether-sound",
+                      String(e.target.checked),
+                    );
                   }}
+                />
+              </label>
+              <label>
+                {HUD[locale].motion}
+                <input
+                  type="checkbox"
+                  checked={reduced}
+                  onChange={(e) => setReduced(e.target.checked)}
+                />
+              </label>
+              <label>
+                {HUD[locale].speed}
+                <select
+                  value={speed}
+                  onChange={(e) => setSpeed(Number(e.target.value))}
                 >
-                  Begin a new expedition →
-                </button>
-              </section>
-            </div>
-          )}
-          {state.devTools && r.hostId === p.id && (
-            <details className="developer">
-              <summary>Development controls · loopback only</summary>
-              <input
-                aria-label="Developer value"
-                value={devValue}
-                onChange={(e) => setDevValue(e.target.value)}
-              />
-              {(
-                [
-                  "gold",
-                  "level",
-                  "seed",
-                  "shop",
-                  "unit",
-                  "item",
-                  "advance",
-                  "speed",
-                ] as const
-              ).map((command) => (
-                <button
-                  key={command}
-                  onClick={() =>
-                    void act({ type: "dev", command, value: devValue })
-                  }
+                  <option value={1}>1x</option>
+                  <option value={2}>2x</option>
+                </select>
+              </label>
+              <label>
+                {HUD[locale].language}
+                <select
+                  value={locale}
+                  onChange={(e) => setLocale(e.target.value as Locale)}
                 >
-                  {command}
-                </button>
-              ))}
-              <details>
-                <summary>Combat log</summary>
-                <pre>
-                  {r.battles
-                    .flatMap((b) => b.frames.flatMap((f) => f.events))
-                    .slice(-100)
-                    .map((e) => JSON.stringify(e))
-                    .join("\n")}
-                </pre>
-              </details>
-            </details>
-          )}
-        </main>
+                  <option value="th">Thai</option>
+                  <option value="en">English</option>
+                </select>
+              </label>
+            </>
+          }
+          guide={<FieldGuide locale={locale} onInspect={setCardDetail} />}
+        />
       )}
-      {settings && (
+      {settings && (!r || r.phase === "Lobby") && (
         <div className="settings">
           <h3>Expedition settings</h3>
           <label>
@@ -1111,7 +963,7 @@ function App() {
           <button onClick={() => setSettings(false)}>Close</button>
         </div>
       )}
-      {codex && (
+      {codex && (!r || r.phase === "Lobby") && (
         <div className="modal-backdrop">
           <section className="modal codex">
             <button
@@ -1176,7 +1028,7 @@ function App() {
           </section>
         </div>
       )}
-      {cardDetail && (
+      {cardDetail && (!r || r.phase === "Lobby") && (
         <div className="modal-backdrop card-detail-backdrop">
           <section
             className="modal card-inspection"
@@ -1190,7 +1042,11 @@ function App() {
             >
               ×
             </button>
-            <UnitCard unit={cardDetail} variant="detail" />
+            <UnitCard
+              unit={cardDetail}
+              fighter={cardDetail.fighter}
+              variant="detail"
+            />
           </section>
         </div>
       )}

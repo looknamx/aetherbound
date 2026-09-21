@@ -5,7 +5,7 @@ import {
 import { useEffect, useRef, useState } from "react";
 import Phaser from "phaser";
 import { BOARD, RULES, UNIT_MAP } from "../../shared/content";
-import type { Battle, CombatFrame, Unit } from "../../shared/types";
+import type { Battle, CombatFrame, Unit, Fighter } from "../../shared/types";
 import { tone } from "../audio";
 import { UnitCard } from "./UnitCard";
 import { setCardDragImage } from "./CardDragPreview";
@@ -31,6 +31,11 @@ interface Props {
   dragging?: boolean;
   locale?: Locale;
   eventCursor?: number;
+  compact?: boolean;
+  onInspect?: (
+    unit: Pick<Unit, "defId" | "star" | "items">,
+    fighter?: Fighter,
+  ) => void;
 }
 export function playbackFrame(
   battle: Battle,
@@ -184,7 +189,7 @@ export function CardBoard(props: Props) {
     ownSide = props.battle?.a === props.playerId ? 0 : 1;
   return (
     <>
-      {!props.battle && (
+      {!props.battle && !props.compact && (
         <div className="zone-legend">
           <span>ด้านบน · พื้นที่ฝ่ายตรงข้าม</span>
           <span>ด้านล่าง · พื้นที่วางของคุณ 6×3</span>
@@ -294,7 +299,18 @@ export function CardBoard(props: Props) {
                     top: `${(position.y / BOARD.size) * 100}%`,
                   }}
                   aria-label={`Inspect ${f.side === ownSide ? "ally" : "enemy"} ${UNIT_MAP[f.defId].name}`}
-                  onClick={() => setInspected(f.id)}
+                  onClick={() =>
+                    props.onInspect
+                      ? props.onInspect(
+                          {
+                            defId: f.defId,
+                            star: f.star,
+                            items: f.items ?? [],
+                          },
+                          f,
+                        )
+                      : setInspected(f.id)
+                  }
                 >
                   <UnitCard
                     unit={{
@@ -317,7 +333,7 @@ export function CardBoard(props: Props) {
           </div>
         )}
       </div>
-      {props.battle && (
+      {props.battle && !props.compact && (
         <details className="strategy-panel">
           <summary>{LABELS[props.locale ?? "th"].log}</summary>
           <div className="combat-event-log">

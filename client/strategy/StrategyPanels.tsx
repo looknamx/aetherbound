@@ -197,6 +197,11 @@ export function ChoicePanel({
                       })
                     }
                   >
+                    {aug && (
+                      <span aria-hidden="true" className="choice-emblem">
+                        ◆
+                      </span>
+                    )}
                     <strong>
                       {item
                         ? item.glyph + " " + item.name
@@ -232,7 +237,26 @@ export function ChoicePanel({
                         </small>
                       </>
                     )}
-                    {aug && <small>{l.duration}</small>}
+                    {aug && (
+                      <>
+                        <small>{l.duration}</small>
+                        <small>
+                          {l.recommend}:{" "}
+                          {aug.effect === "ember"
+                            ? TRAIT_NAMES.Emberkin[locale]
+                            : aug.effect === "frontArmor"
+                              ? ROLE_NAMES.Tank[locale]
+                              : aug.effect === "backRange"
+                                ? ROLE_NAMES.Ranger[locale]
+                                : locale === "th"
+                                  ? "ทีมของคุณ · ตามเงื่อนไขด้านบน"
+                                  : "Your team · subject to conditions above"}
+                        </small>
+                      </>
+                    )}
+                    <span className="choice-select">
+                      {locale === "th" ? "เลือก" : "Select"} →
+                    </span>
                   </button>
                 );
               })}
@@ -327,7 +351,7 @@ export function RoundInsights({
         </details>
       )}
       {s && (
-        <details className="strategy-panel">
+        <details className="strategy-panel" open>
           <summary>
             {l.summary} · {l.round} {s.round} ·{" "}
             {

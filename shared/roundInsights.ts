@@ -57,6 +57,31 @@ export function combatSummary(
       .map((t) => ({ name: t.id, count: t.count, tier: t.tier }));
   return {
     round,
+    opponentName: enemy.name,
+    events: b.frames
+      .flatMap((frame) =>
+        frame.events.flatMap((e) => {
+          if (
+            e.type !== "cast" &&
+            e.type !== "death" &&
+            e.type !== "shieldBreak"
+          )
+            return [];
+          const source = frame.units.find((u) => u.id === e.source),
+            target = frame.units.find((u) => u.id === e.target);
+          return source
+            ? [
+                {
+                  tick: e.tick,
+                  type: e.type,
+                  sourceDefId: source.defId,
+                  targetDefId: target?.defId,
+                },
+              ]
+            : [];
+        }),
+      )
+      .slice(-200),
     result: win === null ? "draw" : win ? "win" : "loss",
     playerDamage: damage,
     survivors:
