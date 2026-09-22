@@ -1,4 +1,17 @@
-# Test report — 21 September 2026
+# Test report — 22 September 2026
+
+## Latest change: viewport game HUD
+
+- `npm test`: **186/186 tests across 14 files passed**. Includes overlay accessibility/priority, mandatory choice idempotency and reconnect, scouting, tabs, safe statistics, retained events and fresh-connection replay.
+- Type checking, focused AST lint and production build passed (96 transformed modules).
+- Browser verification: 1920×1080, 1600×900, 1440×900, 1366×768, 1280×720, 1024×768, 844×390 and 390×844. Document dimensions matched viewport dimensions with normal body overflow visible. The smallest measured board cells were 44 px at mobile landscape.
+- Real UI checks: purchase updates gold/reserves, mandatory reward selection, reconnect, scouting auto-return, income tab, Escape/focus restoration and Play again successfully starting round 1. An initial already-bound-session issue was fixed and regression-tested.
+- Screenshots/geometry reports: ignored `test-results/hud/`. No image artifacts were staged. The old standalone Playwright suite was not run; its old page-layout selectors need migration before reuse.
+- No combat calculations or game rules changed. Optional summary display metadata preserves opponent/important events after the replay is cleared.
+- See [HUD architecture, phase behavior, viewport evidence and limits](docs/GAME_HUD.md).
+- The existing `73b7684` commit was already present when work resumed. These follow-up fixes and reports are prepared for commit and push at the user's request.
+
+# Previous test report — 21 September 2026
 
 ## Latest change: seven integrated strategy systems
 

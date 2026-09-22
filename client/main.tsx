@@ -174,6 +174,7 @@ function App() {
     const reply = await request("practice", { name, difficulty });
     setPending(false);
     if (reply.ok) {
+      sessionStorage.setItem("aether-practice-difficulty", difficulty);
       sessionStorage.setItem("aether-token", reply.token!);
       localStorage.setItem("aether-name", name);
       history.replaceState({}, "", "/");
@@ -513,6 +514,7 @@ function App() {
         </main>
       ) : (
         <GameShell
+          key={r.key}
           state={state}
           locale={locale}
           connected={connected}
@@ -548,7 +550,11 @@ function App() {
             socket.once("connect", () => {
               if (r.mode === "practice")
                 void practice(
-                  r.players.find((x) => x.bot)?.bot?.difficulty ?? "normal",
+                  (["easy", "normal", "hard"].includes(
+                    sessionStorage.getItem("aether-practice-difficulty") ?? "",
+                  )
+                    ? sessionStorage.getItem("aether-practice-difficulty")
+                    : "normal") as Difficulty,
                 );
               else void enter(false);
             });
@@ -781,6 +787,22 @@ function App() {
                 {HUD[locale].xp}
               </button>{" "}
               <div className="unit-info">
+                {p.units.some((u) => u.slot >= 44) && (
+                  <details>
+                    <summary>
+                      {locale === "th"
+                        ? "ตัวสำรองที่กู้คืน"
+                        : "Recovered reserves"}
+                    </summary>
+                    {p.units
+                      .filter((u) => u.slot >= 44)
+                      .map((u) => (
+                        <button key={u.id} onClick={() => select(u.id)}>
+                          {UNIT_MAP[u.defId].name} {"★".repeat(u.star)}
+                        </button>
+                      ))}
+                  </details>
+                )}
                 {def && unit ? (
                   <>
                     <UnitCard unit={unit} variant="detail" />

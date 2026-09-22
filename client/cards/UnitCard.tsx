@@ -192,7 +192,15 @@ export function UnitTooltip({
         </div>
         <div>
           <dt>Targeting</dt>
-          <dd>{d.targeting}</dd>
+          <dd>
+            {
+              {
+                nearest: "Nearest enemy",
+                weakest: "Lowest-health enemy",
+                farthest: "Farthest enemy",
+              }[d.targeting]
+            }
+          </dd>
         </div>
         <div>
           <dt>Base ATK / DEF</dt>

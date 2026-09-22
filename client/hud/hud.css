@@ -947,8 +947,63 @@
 .hud-scout {
   padding: calc(min(100cqw, 100cqh) * 0.0615385);
 }
+/* A small tile uses fixed information rows rather than shrinking a portrait card. */
+@container (max-width: 480px) or (max-height: 450px) {
+  .game-shell .unit-card--board .card-center {
+    inset: 0;
+    display: block;
+  }
+  .game-shell .unit-card--board .card-art {
+    display: block;
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    opacity: 0.16;
+  }
+  .game-shell .unit-card--board .card-name {
+    position: absolute;
+    top: 22px;
+    left: 0;
+    margin: 0;
+    width: 100%;
+    font-size: 11px;
+    line-height: 13px;
+    max-height: 13px;
+  }
+  .game-shell .unit-card--board .card-stars {
+    position: absolute;
+    bottom: 6px;
+    left: 0;
+    width: 100%;
+    font-size: 9px;
+    line-height: 9px;
+  }
+  .game-shell .unit-card--board .card-bars {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    margin: 0;
+    width: 100%;
+  }
+  .game-shell .unit-card--board .card-items,
+  .game-shell .unit-card--board .corner-bl,
+  .game-shell .unit-card--board .corner-br {
+    display: none;
+  }
+}
 @media (max-height: 500px) and (orientation: landscape) {
   .hud-scout {
     padding: 0;
+  }
+  .game-shell .unit-card--board .card-name {
+    top: 18px;
+    font-size: 10px;
+    line-height: 11px;
+  }
+  .game-shell .unit-card--board .card-stars {
+    bottom: 4px;
+    font-size: 8px;
+    line-height: 8px;
   }
 }

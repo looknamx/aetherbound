@@ -9,6 +9,57 @@ import { assertPool } from "../shared/pool";
 import { migrateRoom } from "../shared/migration";
 import { unit } from "./helpers";
 import type { Reply, Snapshot } from "../shared/types";
+it("a fresh connection can start practice after a completed bound match", async () => {
+  const server = createGameServer({ archive: false }),
+    port = await server.listen(0, "127.0.0.1"),
+    s = io("http://127.0.0.1:" + port, {
+      autoConnect: false,
+      forceNew: true,
+      transports: ["websocket"],
+    });
+  const connect = () =>
+    new Promise<void>((resolve) => {
+      s.once("connect", resolve);
+      s.connect();
+    });
+  const request = (event: string, data: unknown) =>
+    new Promise<Reply>((resolve) => s.emit(event, data, resolve));
+  try {
+    await connect();
+    const first = await request("practice", {
+      name: "Replay",
+      difficulty: "hard",
+    });
+    expect(first.ok).toBe(true);
+    const old = [...server.engine.rooms.values()][0];
+    old.phase = "Finished";
+    expect(
+      (await request("practice", { name: "Replay", difficulty: "hard" })).ok,
+    ).toBe(false);
+    s.disconnect();
+    await connect();
+    const second = await request("practice", {
+      name: "Replay",
+      difficulty: "hard",
+    });
+    expect(second.ok).toBe(true);
+    expect(second.token).not.toBe(first.token);
+    const next = [...server.engine.rooms.values()].find(
+      (r) => r.key !== old.key,
+    )!;
+    expect(next.phase).toBe("Preparing");
+    expect(next.round).toBe(1);
+    expect(next.players[0].hp).toBe(100);
+    expect(
+      next.players
+        .filter((p) => p.bot)
+        .every((p) => p.bot?.difficulty === "hard"),
+    ).toBe(true);
+  } finally {
+    s.disconnect();
+    await server.close();
+  }
+});
 it("headless bot matches replay identically and finish with conserved supply", () => {
   const a = simulateBots(31),
     b = simulateBots(31);
